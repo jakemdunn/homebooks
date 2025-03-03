@@ -1,0 +1,43 @@
+{
+  "extensionName": {
+    "message": "HomeBooks",
+    "description": "Homepage bookmarks manager."
+  },
+  "extensionDescription": {
+    "message": "Replaces the user's homepage with a session based bookmarks manager.",
+    "description": "Puts bookmarks where they're most useful - the default view in each new tab."
+  },
+
+  "openInTab": {
+    "message": "Open in New Tab",
+    "description": "Opens bookmark in a new tab within the current window."
+  },
+  "openInWindow": {
+    "message": "Open in New Window",
+    "description": "Opens bookmark in a new window."
+  },
+  "openInPrivateWindow": {
+    "message": "Open in New Private Window",
+    "description": "Opens bookmark in a new private window."
+  },
+  "editBookmark": {
+    "message": "Edit Bookmark...",
+    "description": "Edit the bookmark label and url."
+  },
+  "deleteBookmark": {
+    "message": "Delete Bookmark",
+    "description": "Remove the bookmark."
+  },
+  "cutBookmark": {
+    "message": "Cut",
+    "description": "Remove the bookmark and place it on the clipboard."
+  },
+  "copyBookmark": {
+    "message": "Copy",
+    "description": "Copy the bookmark onto the clipboard."
+  },
+  "pasteBookmark": {
+    "message": "Paste",
+    "description": "Create a new bookmark using the clipboard contents."
+  }
+}

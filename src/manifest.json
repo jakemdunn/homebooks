@@ -1,0 +1,44 @@
+{
+  "{{chrome}}.manifest_version": 3,
+  "{{firefox}}.manifest_version": 2,
+  "default_locale": "en",
+  "permissions": [
+    "bookmarks",
+    "clipboardRead",
+    "clipboardWrite",
+    "menus.overrideContext",
+    "menus",
+    "storage",
+    "tabs"
+  ],
+  "incognito": "spanning",
+  "icons": {
+    "16": "icon/homebooks.svg",
+    "32": "icon/homebooks.svg",
+    "48": "icon/homebooks.svg",
+    "96": "icon/homebooks.svg",
+    "128": "icon/homebooks.svg"
+  },
+  "chrome_settings_overrides": {
+    "homepage": "src/homepage.html"
+  },
+  "chrome_url_overrides": {
+    "newtab": "src/homepage.html"
+  },
+  "{{chrome}}.action": {
+    "default_popup": "src/popup.html"
+  },
+  "{{firefox}}.browser_action": {
+    "default_popup": "src/popup.html"
+  },
+  "background": {
+    "{{chrome}}.service_worker": "src/background.ts",
+    "{{firefox}}.scripts": ["src/background.ts"],
+    "persistent": false
+  },
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "addon@homebooks-addon.com"
+    }
+  }
+}

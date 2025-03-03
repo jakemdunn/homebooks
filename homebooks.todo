@@ -1,0 +1,21 @@
+Bugs:
+  ✔ Unable to move anything onto folders in bookmarks @done(25-03-03 07:04)
+  ☐ Unable to move folder to bottom row of folder
+Core Features:
+  ☐ Global Search
+  ☐ Settings Panel
+  ☐ Select Root Folder
+  ☐ Edit Popup
+  ☐ Tags
+  ☐ Save full window to new folder
+  ☐ Import from Toby
+  ☐ Confirm configuration as proper background script: https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/Background_scripts#convert_to_non-persistent
+  ☐ Help section with tips & short video clips
+  ☐ Release Notes
+Nice To Have:
+  ☐ Cross Browser Sync (xBrowserSync? floccus!?)
+  ☐ Multi Browser Support
+  ☐ Collapsible or adjustable sidebar
+  ☐ "Next/TODO" feature using flags or separate folder?
+  ☐ Mobile Support soon?? (Track https://bugzilla.mozilla.org/show_bug.cgi?id=1796596)
+  
