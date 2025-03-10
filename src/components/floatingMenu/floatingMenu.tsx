@@ -1,65 +1,75 @@
 import {
   useFloating,
-  autoUpdate,
-  FloatingPortal,
-  useClick,
   useInteractions,
-  useDismiss,
+  Placement,
+  autoUpdate,
   flip,
-  useTransitionStyles,
-  useListNavigation,
-  useTypeahead,
   FloatingList,
+  FloatingPortal,
+  ReferenceType,
+  useDismiss,
+  useListNavigation,
+  useTransitionStyles,
+  useTypeahead,
 } from "@floating-ui/react";
 import {
   createContext,
   FC,
   PropsWithChildren,
   ReactElement,
+  useCallback,
   useContext,
+  useEffect,
+  useMemo,
   useRef,
   useState,
 } from "react";
-import {
-  buttonContentsStyle,
-  buttonStyle,
-  menuStyle,
-} from "./floatingMenu.css";
 import { useConditionalClassNames } from "../../util/useConditionalClassNames";
-
-export interface FloatingMenuProps
-  extends React.DetailedHTMLProps<
-    React.ButtonHTMLAttributes<HTMLButtonElement>,
-    HTMLButtonElement
-  > {
-  items: ReactElement;
-}
-
-interface FloatingMenuContextState {
+import { DragId } from "../drag/dragContext.util";
+import { menuStyle } from "./floatingMenu.css";
+import { useFloatingMenusContext } from "./floatingMenu.handler";
+export interface FloatingMenuContextState {
   activeIndex?: number | null;
   getItemProps: ReturnType<typeof useInteractions>["getItemProps"];
+  closeMenu: () => void;
+  open: boolean;
+  isMounted: boolean;
+  placement: Placement;
+  buttonRef?: React.RefObject<Element | undefined>; //TODO: Deleted, or refactored
+  setReference: ReturnType<typeof useFloating>["refs"]["setReference"];
+  getReferenceProps: ReturnType<typeof useInteractions>["getReferenceProps"];
 }
-const FloatingMenuContext = createContext<FloatingMenuContextState>(
-  {} as FloatingMenuContextState,
+export const FloatingMenuContext = createContext<FloatingMenuContextState>(
+  {} as FloatingMenuContextState
 );
 export const useFloatingMenuContext = () => useContext(FloatingMenuContext);
 
+export interface FloatingMenuProps {
+  items: ReactElement;
+  reference: ReferenceType;
+  type: "context" | "menu";
+  dragId: DragId;
+}
+
 export const FloatingMenu: FC<PropsWithChildren<FloatingMenuProps>> = ({
   items,
-  className,
-  children,
-  ...props
+  type,
+  reference,
+  dragId,
 }) => {
-  const [open, onOpenChange] = useState(false);
+  const { dispatch } = useFloatingMenusContext();
+  const [open, onOpenChange] = useState(true);
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
   const { refs, floatingStyles, context, placement } = useFloating({
     open,
     onOpenChange,
     whileElementsMounted: autoUpdate,
-    placement: "top-end",
+    placement: type === "context" ? "bottom-start" : "top-end",
     middleware: [
       flip({
-        padding: 50,
+        padding: {
+          top: 50,
+        },
       }),
     ],
   });
@@ -78,9 +88,18 @@ export const FloatingMenu: FC<PropsWithChildren<FloatingMenuProps>> = ({
           : "polygon(-10% 0%, 110% 0%, 110% 110%, -10% 110%)",
     }),
   });
-  const click = useClick(context);
-  const dismiss = useDismiss(context);
-
+  const dismiss = useDismiss(context, {
+    referencePress: true,
+    referencePressEvent: "click",
+    outsidePress: (event) => {
+      console.log(event);
+      if (event.button !== 2) return true;
+      const closestDragElement = (event.target as HTMLElement)?.closest(
+        `[data-drag-id]`
+      );
+      return closestDragElement?.getAttribute("data-drag-id") !== dragId;
+    },
+  });
   const listRef = useRef<(HTMLElement | null)[]>([]);
   const labelsRef = useRef<string[]>([]);
 
@@ -97,46 +116,71 @@ export const FloatingMenu: FC<PropsWithChildren<FloatingMenuProps>> = ({
   });
 
   const { getReferenceProps, getFloatingProps, getItemProps } = useInteractions(
-    [click, dismiss, listNavigation, typeahead],
+    [dismiss, listNavigation, typeahead]
   );
 
-  const buttonStyles = useConditionalClassNames(
-    {
-      open: () => open,
-      mounted: () => isMounted,
-    },
-    className,
-    buttonStyle,
-    placement,
+  const closeMenu = useCallback(() => onOpenChange(false), []);
+
+  const contextState = useMemo<FloatingMenuContextState>(
+    () => ({
+      activeIndex,
+      getItemProps,
+      closeMenu,
+      open,
+      isMounted,
+      placement,
+      setReference: refs.setReference,
+      getReferenceProps,
+    }),
+    [
+      activeIndex,
+      closeMenu,
+      getItemProps,
+      getReferenceProps,
+      isMounted,
+      open,
+      placement,
+      refs.setReference,
+    ]
   );
+  useEffect(() => {
+    dispatch({ type: "setState", dragId, state: contextState });
+  }, [contextState, dispatch, dragId]);
+
+  const menuClassNames = useConditionalClassNames(
+    {
+      contextualMenu: () => type === "context",
+    },
+    menuStyle,
+    placement
+  );
+
+  useEffect(() => {
+    refs.setReference(reference);
+  }, [refs, reference]);
+
+  useEffect(() => {
+    if (!isMounted) {
+      dispatch({ type: "removeMenu", dragId });
+    }
+  }, [dispatch, dragId, isMounted]);
 
   return (
-    <>
-      <button
-        type="button"
-        ref={refs.setReference}
-        className={buttonStyles}
-        {...props}
-        {...getReferenceProps()}
-      >
-        <span className={buttonContentsStyle}>{children}</span>
-      </button>
+    <FloatingMenuContext.Provider value={contextState}>
       {isMounted && (
         <FloatingPortal>
           <FloatingList elementsRef={listRef} labelsRef={labelsRef}>
-            <FloatingMenuContext value={{ activeIndex, getItemProps }}>
-              <div
-                ref={refs.setFloating}
-                className={[menuStyle, placement].join(" ")}
-                style={{ ...floatingStyles, ...styles }}
-                {...getFloatingProps()}
-              >
-                {items}
-              </div>
-            </FloatingMenuContext>
+            <div
+              ref={refs.setFloating}
+              className={menuClassNames}
+              style={{ ...floatingStyles, ...styles }}
+              {...getFloatingProps()}
+            >
+              {items}
+            </div>
           </FloatingList>
         </FloatingPortal>
       )}
-    </>
+    </FloatingMenuContext.Provider>
   );
 };

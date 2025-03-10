@@ -56,6 +56,7 @@ export const itemActionsStyle = style({
   cursor: "pointer",
   transition: "all 0.2s ease-in-out",
   flex: "0 0 auto",
+  height: "100%",
   ":hover": {
     color: globalTheme.colors.text.inverse,
   },

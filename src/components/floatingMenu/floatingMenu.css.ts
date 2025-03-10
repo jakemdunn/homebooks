@@ -59,11 +59,15 @@ export const buttonContentsStyle = style({
 });
 
 export const menuStyle = style({
+  vars: {
+    floatingMenuButtonWidth: "2rem",
+  },
   color: globalTheme.colors.text.inverse,
-  background: globalTheme.colors.background.inverse,
+  background: `color-mix(in srgb, ${globalTheme.colors.background.inverse}, transparent 10%)`,
+  backdropFilter: "blur(5px)",
   zIndex: 90,
   margin: 0,
-  padding: `0.5rem 0`,
+  padding: `0.5rem`,
   listStyle: "none",
   fontSize: "0.8rem",
   position: "relative",
@@ -71,44 +75,85 @@ export const menuStyle = style({
   boxShadow: "0 0 4px rgba(0,0,0,0.4)",
   display: "flex",
   flexDirection: "column",
+  borderRadius: 4,
   selectors: {
     "&[class*='top']": {
-      borderRadius: "4px 4px 0 0",
+      borderBottomRightRadius: 0,
+      background: `linear-gradient(to top, color-mix(in srgb, ${
+        globalTheme.colors.background.inverse
+      }, transparent 4%), color-mix(in srgb, ${
+        globalTheme.colors.background.inverse
+      }, transparent 10%) 5rem)`,
     },
     "&[class*='bottom']": {
-      borderRadius: "0 0 4px 4px",
+      borderTopRightRadius: 0,
+      background: `linear-gradient(to bottom, color-mix(in srgb, ${
+        globalTheme.colors.background.inverse
+      }, transparent 4%), color-mix(in srgb, ${
+        globalTheme.colors.background.inverse
+      }, transparent 10%) 5rem)`,
+    },
+    "&.contextualMenu[class*='top'], &.contextualMenu[class*='bottom']": {
+      borderBottomRightRadius: 4,
+      borderTopRightRadius: 4,
     },
   },
 });
 
 globalStyle(`${menuStyle}>hr`, {
-  border: `1px solid ${globalTheme.colors.background.level1}`,
-  width: "calc(100% - 1.5rem)",
+  border: "none",
+  borderBottom: `1px solid ${globalTheme.colors.background.level1}`,
+  opacity: 0.2,
+  width: "100%",
 });
 globalStyle(`${menuStyle}>hr:last-child, ${menuStyle}>hr:first-child`, {
   display: "none",
 });
 
 export const menuItem = style({
-  padding: "0.25rem 0.75rem",
+  padding: "0.25rem 0.25rem",
   cursor: "pointer",
-  background: globalTheme.colors.background.inverse,
+  background: "none",
   border: "none",
   position: "relative",
   zIndex: 2,
   textAlign: "left",
+  lineHeight: "1rem",
   maxWidth: "30ch",
+  opacity: 0.75,
+  transition: "all 0.1s ease-in-out",
+  borderRadius: 2,
+  display: "flex",
+  justifyContent: "flex-start",
+  alignItems: "center",
   ":hover": {
-    background: `color-mix(in srgb, ${globalTheme.colors.background.level1} 10%, ${globalTheme.colors.background.inverse})`,
+    background: `color-mix(in srgb, ${globalTheme.colors.text.highContrast} 40%, ${globalTheme.colors.background.inverse})`,
+    opacity: 1,
   },
+  ":active": {
+    background: globalTheme.colors.background.action,
+  },
+  ":focus": {
+    background: globalTheme.colors.background.action,
+    outline: "none",
+  },
+});
+export const menuItemIcon = style({
+  verticalAlign: "middle",
+  marginRight: "0.5rem",
+  width: "1rem",
+  height: "1rem",
+  maxHeight: "100%",
+  display: "block",
 });
 
 export const menuNote = style({
-  maxWidth: "30ch",
-  padding: "0.5rem 0.75rem",
+  maxWidth: "calc(30ch + 0.5rem)",
+  padding: "0.5rem .75rem",
+  margin: "-0.5rem",
   fontSize: 12,
   lineHeight: "1.3em",
-  background: globalTheme.colors.background.action,
+  background: "rgba(0,0,0,.2)",
   selectors: {
     "[class*='top'] &": {
       order: -1,
@@ -118,6 +163,9 @@ export const menuNote = style({
     "[class*='bottom'] &": {
       borderRadius: "0 0 4px 4px",
       marginTop: "0.5rem",
+    },
+    ".contextualMenu &": {
+      display: "none",
     },
   },
 });

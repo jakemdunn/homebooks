@@ -3,7 +3,8 @@ import { fonts, globalTheme } from "./global.css";
 
 export const homepageStyle = style({
   padding: "0 0 0 3rem",
-  overflow: "auto",
+  overflowY: "scroll",
+  overflowX: "hidden",
   height: "100vh",
 });
 

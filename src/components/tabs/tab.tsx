@@ -9,21 +9,16 @@ import {
 
 export const Tab: FC<{ value: browser.Tabs.Tab }> = ({ value }) => {
   const url = useMemo(() => new URL(value.url!), [value.url]);
-  const onContextMenu = useCallback<
-    React.MouseEventHandler<HTMLElement>
-  >(() => {
-    if (browser.menus?.overrideContext && value.id) {
-      browser.menus.overrideContext({
-        context: "tab",
-        tabId: value.id,
-      });
-    }
-  }, [value]);
-
   const dragId = useMemo<DragId>(() => `tab-${value.id}`, [value.id]);
   const source = useMemo<DataTransferSource>(
-    () => ({ url: value.url, title: value.title, id: dragId }),
-    [dragId, value.title, value.url],
+    () => ({
+      url: value.url,
+      title: value.title,
+      type: "tab",
+      source: value,
+      id: dragId,
+    }),
+    [dragId, value]
   );
   const onDragStart = useSetDataTransfer(source, dragId);
 
@@ -35,6 +30,9 @@ export const Tab: FC<{ value: browser.Tabs.Tab }> = ({ value }) => {
       focused: true,
     });
   }, [value.id, value.windowId]);
+
+  if (!value.id || !value.windowId) return null;
+
   return (
     <Item
       data-drag-id={`tab-${value.id}`}
@@ -42,9 +40,8 @@ export const Tab: FC<{ value: browser.Tabs.Tab }> = ({ value }) => {
       details={url.hostname}
       draggable
       favicon={value.favIconUrl!}
-      id={value.id?.toString() ?? "0"}
+      id={`tab-${value.id}`}
       onClick={onClick}
-      onContextMenu={onContextMenu}
       onDragStart={onDragStart}
       url={value.url!}
     >
