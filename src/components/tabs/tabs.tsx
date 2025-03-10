@@ -13,6 +13,7 @@ export const TabsProvider: FC = () => {
       tabs: browser.Tabs.Tab[];
     }[]
   >();
+
   const [closedTabs, setClosedTabs] = useState<Set<string>>(new Set());
   const flipKey = useMemo(
     () =>
@@ -20,7 +21,7 @@ export const TabsProvider: FC = () => {
         (tabs?.map((window) => window.windowId) ?? []).join(","),
         [...closedTabs].join(","),
       ].join("-"),
-    [closedTabs, tabs],
+    [closedTabs, tabs]
   );
 
   useEffect(() => {
@@ -53,7 +54,10 @@ export const TabsProvider: FC = () => {
         }
 
         const tabsByWindow = tabs
-          .filter((tab) => !tab.url?.includes(extensionURL))
+          .filter(
+            (tab) =>
+              !tab.url?.includes(extensionURL) && !tab.url?.match(/^about:/)
+          )
           .reduce<Record<number, browser.Tabs.Tab[]>>((byWindow, tab) => {
             const windowId = tab.windowId ?? 0;
             return {
@@ -65,7 +69,7 @@ export const TabsProvider: FC = () => {
           Object.entries(tabsByWindow).map(([windowId, tabs]) => ({
             windowId,
             tabs,
-          })),
+          }))
         );
       };
     updateTabs()();
@@ -79,12 +83,12 @@ export const TabsProvider: FC = () => {
           [event]: listener,
         };
       },
-      {} as Record<TabEvents, () => void>,
+      {} as Record<TabEvents, () => void>
     );
 
     return () => {
       tabEvents.map((event) =>
-        browser.tabs[event].removeListener(listeners[event]),
+        browser.tabs[event].removeListener(listeners[event])
       );
     };
   }, []);
@@ -101,7 +105,7 @@ export const TabsProvider: FC = () => {
         return updated;
       });
     },
-    [],
+    []
   );
 
   return (

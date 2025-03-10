@@ -1,8 +1,8 @@
 import { useListItem } from "@floating-ui/react";
 import { FC } from "react";
 import { NormalMenuItem } from "../../util/menu.constants";
+import { menuItem, menuItemIcon } from "./floatingMenu.css";
 import { useFloatingMenuContext } from "./floatingMenu";
-import { menuItem } from "./floatingMenu.css";
 
 export const FloatingMenuSeparator: FC = () => <hr />;
 
@@ -14,8 +14,9 @@ export const FloatingMenuItem: FC<FloatingMenuItemProps> = ({
   id,
   title,
   onClick,
+  icon: Icon,
 }) => {
-  const { activeIndex, getItemProps } = useFloatingMenuContext();
+  const { activeIndex, getItemProps, closeMenu } = useFloatingMenuContext();
   const { ref, index } = useListItem({ label: title });
 
   const isActive = activeIndex === index;
@@ -25,10 +26,14 @@ export const FloatingMenuItem: FC<FloatingMenuItemProps> = ({
       className={menuItem}
       key={id}
       tabIndex={isActive ? 0 : -1}
-      onClick={onClick}
+      onClick={() => {
+        onClick();
+        closeMenu();
+      }}
       ref={ref}
       {...getItemProps}
     >
+      {Icon && <Icon className={menuItemIcon} />}
       {title}
     </button>
   );

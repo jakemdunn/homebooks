@@ -1,10 +1,4 @@
-import {
-  ComponentProps,
-  FC,
-  PropsWithChildren,
-  ReactNode,
-  useMemo,
-} from "react";
+import { FC, PropsWithChildren, ReactNode, useMemo } from "react";
 import { Flipped } from "react-flip-toolkit";
 import {
   itemWrapperStyle,
@@ -19,7 +13,7 @@ import { useDragContext } from "../drag/dragContext";
 import { useConditionalClassNames } from "../../util/useConditionalClassNames";
 import { DragId } from "../drag/dragContext.util";
 import { TiThMenu } from "react-icons/ti";
-import { FloatingMenu } from "../floatingMenu/floatingMenu";
+import { FloatingMenuButton } from "../floatingMenu/floatingMenuButton";
 
 export type ItemProps = Omit<
   React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>, HTMLElement>,
@@ -29,7 +23,6 @@ export type ItemProps = Omit<
   details: ReactNode;
   favicon: string;
   url?: string;
-  contextActions?: ComponentProps<typeof FloatingMenu>["items"];
 };
 
 export const Item: FC<PropsWithChildren<ItemProps>> = ({
@@ -37,7 +30,6 @@ export const Item: FC<PropsWithChildren<ItemProps>> = ({
   details,
   id,
   favicon,
-  contextActions,
   onClick,
   url,
   ...props
@@ -48,7 +40,7 @@ export const Item: FC<PropsWithChildren<ItemProps>> = ({
     {
       dragging: () => dragState.sourceIds.has(id),
     },
-    itemWrapperStyle,
+    itemWrapperStyle
   );
   const content = useMemo(
     () => (
@@ -65,8 +57,9 @@ export const Item: FC<PropsWithChildren<ItemProps>> = ({
         <div className={itemDetailsStyle}>{details}</div>
       </>
     ),
-    [children, details, favicon],
+    [children, details, favicon]
   );
+
   return (
     <Flipped flipId={id}>
       <div className={itemClassNames} {...props}>
@@ -80,11 +73,9 @@ export const Item: FC<PropsWithChildren<ItemProps>> = ({
             {content}
           </a>
         )}
-        {contextActions && (
-          <FloatingMenu className={itemActionsStyle} items={contextActions}>
-            <TiThMenu />
-          </FloatingMenu>
-        )}
+        <FloatingMenuButton dragId={id} className={itemActionsStyle}>
+          <TiThMenu />
+        </FloatingMenuButton>
       </div>
     </Flipped>
   );

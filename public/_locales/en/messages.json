@@ -39,5 +39,9 @@
   "pasteBookmark": {
     "message": "Paste",
     "description": "Create a new bookmark using the clipboard contents."
+  },
+  "createBookmark": {
+    "message": "Create Bookmark...",
+    "description": "Create a new bookmark from the selected tab."
   }
 }

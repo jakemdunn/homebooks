@@ -1,4 +1,4 @@
-import { FC, useCallback, useMemo } from "react";
+import { FC, useMemo } from "react";
 import browser from "webextension-polyfill";
 import { Folder } from "../folder/folder";
 import { Item } from "../item/item";
@@ -9,36 +9,23 @@ import {
   useSetDataTransfer,
 } from "../drag/dragContext.util";
 import { FloatingMenuItems } from "../floatingMenu/floatingMenuItems";
-import { BookmarkMenu } from "../../util/bookmark.utils";
+import { BookmarkMenu } from "../../util/menu.bookmark";
 
 export const Bookmark: FC<{ node: browser.Bookmarks.BookmarkTreeNode }> = ({
   node,
   ...props
 }) => {
-  const onContextMenu = useCallback<React.MouseEventHandler<HTMLElement>>(
-    (event) => {
-      if (browser.menus?.overrideContext) {
-        browser.menus.overrideContext({
-          context: "bookmark",
-          bookmarkId: node.id,
-        });
-      }
-      event.stopPropagation();
-    },
-    [node.id],
-  );
-
   const { expanded, toggle } = useBookmarkContext();
   const isOpen = useMemo(() => expanded.includes(node.id), [expanded, node.id]);
 
   const url = useMemo(
     () => (node.url ? new URL(node.url) : undefined),
-    [node.url],
+    [node.url]
   );
 
   const dragId = useMemo<DragId>(
     () => `${node.type === "bookmark" ? "bookmark" : "folder"}-${node.id}`,
-    [node.id, node.type],
+    [node.id, node.type]
   );
   const source = useMemo<DataTransferSource | DataTransferSource[]>(
     () =>
@@ -50,7 +37,7 @@ export const Bookmark: FC<{ node: browser.Bookmarks.BookmarkTreeNode }> = ({
             type: "bookmark",
             source: child,
           })) ?? []),
-    [node],
+    [node]
   );
   const onDragStart = useSetDataTransfer(source, dragId);
 
@@ -59,7 +46,7 @@ export const Bookmark: FC<{ node: browser.Bookmarks.BookmarkTreeNode }> = ({
       node.children?.filter((childNode) => childNode.url).length ?? 0,
       node.children?.filter((childNode) => childNode.children).length ?? 0,
     ],
-    [node.children],
+    [node.children]
   );
   const detailText = useMemo(() => {
     const details: string[] = [];
@@ -82,7 +69,6 @@ export const Bookmark: FC<{ node: browser.Bookmarks.BookmarkTreeNode }> = ({
         id={`folder-${node.id}`}
         isOpen={isOpen}
         onClick={() => toggle(node.id)}
-        onContextMenu={onContextMenu}
         onDragStart={onDragStart}
         title={node.title}
         detail={detailText}
@@ -103,14 +89,13 @@ export const Bookmark: FC<{ node: browser.Bookmarks.BookmarkTreeNode }> = ({
       data-index={node.index}
       draggable
       onDragStart={onDragStart}
-      onContextMenu={onContextMenu}
       details={url.hostname}
       favicon={`https://www.google.com/s2/favicons?domain=${url.host}&sz=32`}
       url={node.url}
       contextActions={
         <FloatingMenuItems
           items={BookmarkMenu}
-          menuActionProps={{ bookmarkId: node.id }}
+          menuActionProps={[{ bookmarkId: node.id }]}
         />
       }
       {...props}

@@ -1,6 +1,16 @@
 import browser from "webextension-polyfill";
 import { MenuItems, NormalMenuItem } from "./menu.constants";
 import { i18n } from "./i18n";
+import {
+  FaLock,
+  FaPlusCircle,
+  FaPlusSquare,
+  FaEdit,
+  FaTrash,
+  FaCut,
+  FaCopy,
+  FaPaste,
+} from "react-icons/fa";
 
 export const BOOKMARK_MENU_ACTIONS = {
   openInTab: "CONTEXT_MENU_BOOKMARK_OPENINTAB",
@@ -25,7 +35,7 @@ const bookmarkAction =
   };
 
 export const writeBookmarkToClipboard = async (
-  bookmark: browser.Bookmarks.BookmarkTreeNode,
+  bookmark: browser.Bookmarks.BookmarkTreeNode
 ) => {
   const anchorHtml = `<A HREF="${bookmark.url}">${bookmark.title}</A>`;
   const clipboardItem = new ClipboardItem({
@@ -82,6 +92,7 @@ export const BookmarkMenu: MenuItems<typeof BOOKMARK_MENU_ACTIONS> = [
     id: BOOKMARK_MENU_ACTIONS.openInTab,
     title: i18n("openInTab"),
     type: "normal",
+    icon: FaPlusCircle,
     action: bookmarkAction((bookmark) => {
       browser.tabs.create({ url: bookmark.url, active: true });
     }),
@@ -91,6 +102,7 @@ export const BookmarkMenu: MenuItems<typeof BOOKMARK_MENU_ACTIONS> = [
     id: BOOKMARK_MENU_ACTIONS.openInNewWindow,
     title: i18n("openInWindow"),
     type: "normal",
+    icon: FaPlusSquare,
     action: bookmarkAction(async (bookmark) => {
       browser.windows.create({ url: bookmark.url });
     }),
@@ -99,15 +111,17 @@ export const BookmarkMenu: MenuItems<typeof BOOKMARK_MENU_ACTIONS> = [
     id: BOOKMARK_MENU_ACTIONS.openInPrivateWindow,
     title: i18n("openInPrivateWindow"),
     type: "normal",
+    icon: FaLock,
     action: bookmarkAction(async (bookmark) => {
       browser.windows.create({ url: bookmark.url, incognito: true });
     }),
   },
-  { type: "separator" },
+  { type: "separator", id: "BOOKMARK-SEPARATOR-0" },
   {
     id: BOOKMARK_MENU_ACTIONS.edit,
     title: i18n("editBookmark"),
     type: "normal",
+    icon: FaEdit,
     action: bookmarkAction(async (bookmark) => {
       //TODO: Launch edit dialog
       console.log(bookmark);
@@ -118,15 +132,17 @@ export const BookmarkMenu: MenuItems<typeof BOOKMARK_MENU_ACTIONS> = [
     id: BOOKMARK_MENU_ACTIONS.delete,
     title: i18n("deleteBookmark"),
     type: "normal",
+    icon: FaTrash,
     action: bookmarkAction(async (bookmark) => {
       browser.bookmarks.remove(bookmark.id);
     }),
   },
-  { type: "separator" },
+  { type: "separator", id: "BOOKMARK-SEPARATOR-1" },
   {
     id: BOOKMARK_MENU_ACTIONS.cut,
     title: i18n("cutBookmark"),
     type: "normal",
+    icon: FaCut,
     action: bookmarkAction(async (bookmark) => {
       await writeBookmarkToClipboard(bookmark);
       browser.bookmarks.remove(bookmark.id);
@@ -136,6 +152,7 @@ export const BookmarkMenu: MenuItems<typeof BOOKMARK_MENU_ACTIONS> = [
     id: BOOKMARK_MENU_ACTIONS.copy,
     title: i18n("copyBookmark"),
     type: "normal",
+    icon: FaCopy,
     action: bookmarkAction(async (bookmark) => {
       await writeBookmarkToClipboard(bookmark);
     }),
@@ -144,6 +161,7 @@ export const BookmarkMenu: MenuItems<typeof BOOKMARK_MENU_ACTIONS> = [
     id: BOOKMARK_MENU_ACTIONS.paste,
     title: i18n("pasteBookmark"),
     type: "normal",
+    icon: FaPaste,
     action: bookmarkAction(async (bookmark) => {
       const newBookmark = await getBookMarkFromClipboard();
       if (newBookmark) {

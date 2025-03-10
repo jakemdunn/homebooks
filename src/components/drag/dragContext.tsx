@@ -19,6 +19,7 @@ import {
   getSources,
   processDataTransfer,
 } from "./dragContext.util";
+import { FloatingMenuHandler } from "../floatingMenu/floatingMenu.handler";
 
 interface DragState {
   dragging: boolean;
@@ -124,7 +125,7 @@ export const DragProvider: FC<PropsWithChildren> = ({ children }) => {
       sourceIds: new Set(),
       peekedIds: new Set(),
       dragging: false,
-    },
+    }
   );
   const [sources, setSources] = useState<DataTransferSource[]>([]);
   useEffect(() => {
@@ -138,7 +139,7 @@ export const DragProvider: FC<PropsWithChildren> = ({ children }) => {
   const getPosition = useCallback<
     (
       target: Element,
-      event: React.DragEvent<HTMLElement>,
+      event: React.DragEvent<HTMLElement>
     ) => DragState["position"]
   >((target, event) => {
     const rect = target.getBoundingClientRect();
@@ -185,7 +186,7 @@ export const DragProvider: FC<PropsWithChildren> = ({ children }) => {
         id,
       });
     },
-    [],
+    []
   );
 
   const onDragEnd = useCallback<React.DragEventHandler<HTMLElement>>(() => {
@@ -202,7 +203,7 @@ export const DragProvider: FC<PropsWithChildren> = ({ children }) => {
         action: "removeDestination",
       });
     },
-    [],
+    []
   );
 
   const onDragOver = useCallback<React.DragEventHandler<HTMLElement>>(
@@ -216,7 +217,7 @@ export const DragProvider: FC<PropsWithChildren> = ({ children }) => {
         position: getPosition(target, event),
       });
     },
-    [getPosition],
+    [getPosition]
   );
 
   const onDrop = useCallback<React.DragEventHandler<HTMLElement>>(
@@ -231,7 +232,7 @@ export const DragProvider: FC<PropsWithChildren> = ({ children }) => {
       processDataTransfer(event, dragState.position);
       event.preventDefault();
     },
-    [dragState.position],
+    [dragState.position]
   );
 
   const [indicator, setIndicator] = useState<React.CSSProperties>({});
@@ -241,7 +242,7 @@ export const DragProvider: FC<PropsWithChildren> = ({ children }) => {
       return;
     }
     const target = document.querySelector(
-      `[data-drag-id="${dragState.destinationId}"]`,
+      `[data-drag-id="${dragState.destinationId}"]`
     );
     const container = target?.closest("[data-grid-container]");
     if (!target || !container) {
@@ -318,12 +319,12 @@ export const DragProvider: FC<PropsWithChildren> = ({ children }) => {
       ...dragState,
       sources,
     }),
-    [dragState, sources],
+    [dragState, sources]
   );
 
   return (
     <DragContext.Provider value={dragContextState}>
-      <main
+      <FloatingMenuHandler
         onDragStart={onDragStart}
         onDragEnd={onDragEnd}
         onDragLeave={onDragLeave}
@@ -332,7 +333,7 @@ export const DragProvider: FC<PropsWithChildren> = ({ children }) => {
       >
         <div className={indicatorStyle} style={indicator} />
         {children}
-      </main>
+      </FloatingMenuHandler>
     </DragContext.Provider>
   );
 };
