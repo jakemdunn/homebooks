@@ -1,8 +1,8 @@
 import browser from "webextension-polyfill";
 import { BOOKMARK_MENU_ACTIONS, BookmarkMenu } from "./util/menu.bookmark";
 import { MenuItems, NormalMenuItem } from "./util/menu.constants";
-import { ExtensionStorageData } from "./components/extensionStorage/extensionStorage";
 import { TabMenu } from "./util/menu.tab";
+import { ExtensionStorageData } from "./util/storage.types";
 
 const createMenuItem = async (
   props: Partial<browser.Menus.CreateCreatePropertiesType>
@@ -56,7 +56,7 @@ const createMenu = async (items: MenuItems) => {
 const handlePermissionsUpdate = async () => {
   const visible = await browser.extension.isAllowedIncognitoAccess();
   await browser.storage.local.set({
-    menuVisiblity: {
+    menuVisibility: {
       [BOOKMARK_MENU_ACTIONS.openInPrivateWindow]: visible,
     },
   } as ExtensionStorageData);

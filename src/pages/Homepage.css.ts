@@ -8,34 +8,6 @@ export const homepageStyle = style({
   height: "100vh",
 });
 
-export const headerStyle = style({
-  ...fonts.rubik.styles,
-  fontWeight: fonts.rubik.weights[400],
-  fontSize: "2rem",
-  color: globalTheme.colors.text.header,
-  display: "flex",
-  alignItems: "center",
-  width: "100vh",
-  margin: 0,
-  padding: "0 1rem",
-  minHeight: "3rem",
-  lineHeight: "3rem",
-  background: `repeating-linear-gradient( 45deg, ${globalTheme.colors.background.level1}, ${globalTheme.colors.background.level1} 5px, rgba(0,0,0,0) 5px, rgba(0,0,0,0) 10px )`,
-  transform: "rotate(90deg) translateY(-3rem)",
-  transformOrigin: "0 0",
-  position: "fixed",
-  top: 0,
-  left: 0,
-  gap: ".5rem",
-  boxSizing: "border-box",
-});
-
-export const headerIconStyle = style({
-  width: "1.4rem",
-  height: "auto",
-  transform: "rotate(-90deg) translateX(1px)",
-});
-
 export const actionsHeight = createVar();
 
 globalStyle(":root", {

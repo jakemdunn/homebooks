@@ -3,12 +3,17 @@ Bugs:
   ☐ Unable to move folder to bottom row of folder
   ✔ Context menu items missing for bookmarks @done(25-03-03 17:49)
   ☐ Remove orphaned native right click code
+  ☐ Peeking not working
+  ☐ Unable to just drop back onto existing space
+  ☐ Unable to paste folder copied from bookmarks bar
 Core Features:
   ☐ Global Search
-  ☐ Settings Panel
-  ☐ Select Root Folder
+  ✔ Settings Panel @done(25-03-16 15:19)
+  ✔ Select Root Folder @done(25-03-16 15:20)
+  ☐ Input/Form styling
   ☐ Multi Select for copy/paste & drag/drop
   ☐ Edit Popups
+  ☐ Create new folder
   ☐ Tags
   ☐ Save full window to new folder
   ☐ Import from Toby

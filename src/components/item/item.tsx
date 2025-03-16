@@ -14,6 +14,7 @@ import { useConditionalClassNames } from "../../util/useConditionalClassNames";
 import { DragId } from "../drag/dragContext.util";
 import { TiThMenu } from "react-icons/ti";
 import { FloatingMenuButton } from "../floatingMenu/floatingMenuButton";
+import { useSettingsStorage } from "../settings/settings";
 
 export type ItemProps = Omit<
   React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>, HTMLElement>,
@@ -36,6 +37,7 @@ export const Item: FC<PropsWithChildren<ItemProps>> = ({
 }) => {
   // TODO: Only scale title if it's a double line on hover
   const dragState = useDragContext();
+  const [settings] = useSettingsStorage();
   const itemClassNames = useConditionalClassNames(
     {
       dragging: () => dragState.sourceIds.has(id),
@@ -73,9 +75,12 @@ export const Item: FC<PropsWithChildren<ItemProps>> = ({
             {content}
           </a>
         )}
-        <FloatingMenuButton dragId={id} className={itemActionsStyle}>
-          <TiThMenu />
-        </FloatingMenuButton>
+        {(settings?.contextMenus === "contextMenuOptionBoth" ||
+          settings?.contextMenus === "contextMenuOptionDisplayed") && (
+          <FloatingMenuButton dragId={id} className={itemActionsStyle}>
+            <TiThMenu />
+          </FloatingMenuButton>
+        )}
       </div>
     </Flipped>
   );

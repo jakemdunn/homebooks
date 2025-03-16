@@ -10,6 +10,7 @@ import {
 } from "react";
 import browser from "webextension-polyfill";
 import { useDragContext } from "../drag/dragContext";
+import { useSettingsStorage } from "../settings/settings";
 
 interface BookmarkState {
   bookmarks?: browser.Bookmarks.BookmarkTreeNode[];
@@ -29,15 +30,17 @@ export const BookmarkProvider: FC<PropsWithChildren> = (props) => {
     () => [
       ...new Set<string>([...storeExpanded, ...dragState.peekedIds]).values(),
     ],
-    [dragState.peekedIds, storeExpanded],
+    [dragState.peekedIds, storeExpanded]
   );
   const [bookmarks, setBookmarks] =
     useState<browser.Bookmarks.BookmarkTreeNode[]>();
   const allFolderIds = bookmarks?.map((node) => node.id);
+  const [settings] = useSettingsStorage();
 
   useEffect(() => {
     const updateBookmarks = async () => {
-      const tree = await browser.bookmarks.getSubTree("menu________");
+      if (!settings?.rootFolder) return;
+      const tree = await browser.bookmarks.getSubTree(settings.rootFolder);
       setBookmarks(tree[0].children);
     };
     updateBookmarks();
@@ -53,7 +56,7 @@ export const BookmarkProvider: FC<PropsWithChildren> = (props) => {
       browser.bookmarks.onMoved.removeListener(updateBookmarks);
       browser.bookmarks.onRemoved.removeListener(updateBookmarks);
     };
-  }, []);
+  }, [settings?.rootFolder]);
 
   useEffect(() => {
     const updateStorage = async () => {
@@ -79,7 +82,7 @@ export const BookmarkProvider: FC<PropsWithChildren> = (props) => {
           : [...expanded, folderId],
       });
     },
-    [expanded],
+    [expanded]
   );
 
   const expandAll = useCallback(async () => {
@@ -101,8 +104,8 @@ export const BookmarkProvider: FC<PropsWithChildren> = (props) => {
       expanded,
       toggle,
     }),
-    [bookmarks, expanded, toggle, expandAll, collapseAll],
+    [bookmarks, expanded, toggle, expandAll, collapseAll]
   );
 
-  return <BookmarkContext.Provider value={value} {...props} />;
+  return !!settings && <BookmarkContext.Provider value={value} {...props} />;
 };
