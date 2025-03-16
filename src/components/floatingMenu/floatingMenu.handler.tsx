@@ -14,6 +14,7 @@ import {
   FloatingMenuProps,
 } from "../floatingMenu/floatingMenu";
 import { DragId, getEventData } from "../drag/dragContext.util";
+import { useSettingsStorage } from "../settings/settings";
 
 export interface FloatingMenusContextItem {
   reference: ReferenceType;
@@ -80,8 +81,10 @@ export const FloatingMenuHandler: FC<
     () => Object.entries(menus) as [DragId, FloatingMenusContextItem][],
     [menus]
   );
+  const [settings] = useSettingsStorage();
   const onContextMenu = useCallback<React.MouseEventHandler<HTMLElement>>(
     (event) => {
+      if (settings?.contextMenus === "contextMenuOptionDisplayed") return;
       const { id: dragId, target } = getEventData(event);
       if (!dragId || !target) return;
 
@@ -126,7 +129,7 @@ export const FloatingMenuHandler: FC<
         },
       });
     },
-    []
+    [settings?.contextMenus]
   );
 
   const floatingMenusContext = useMemo<FloatingMenusContextState>(

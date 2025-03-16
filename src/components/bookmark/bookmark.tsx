@@ -8,8 +8,6 @@ import {
   DragId,
   useSetDataTransfer,
 } from "../drag/dragContext.util";
-import { FloatingMenuItems } from "../floatingMenu/floatingMenuItems";
-import { BookmarkMenu } from "../../util/menu.bookmark";
 
 export const Bookmark: FC<{ node: browser.Bookmarks.BookmarkTreeNode }> = ({
   node,
@@ -92,12 +90,6 @@ export const Bookmark: FC<{ node: browser.Bookmarks.BookmarkTreeNode }> = ({
       details={url.hostname}
       favicon={`https://www.google.com/s2/favicons?domain=${url.host}&sz=32`}
       url={node.url}
-      contextActions={
-        <FloatingMenuItems
-          items={BookmarkMenu}
-          menuActionProps={[{ bookmarkId: node.id }]}
-        />
-      }
       {...props}
     >
       {node.title}

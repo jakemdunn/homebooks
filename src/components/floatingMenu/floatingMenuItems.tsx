@@ -2,11 +2,11 @@ import { FC, useCallback, useEffect, useMemo, useState } from "react";
 import { MenuItems, NormalMenuItem } from "../../util/menu.constants";
 import { FloatingMenuItem, FloatingMenuSeparator } from "./floatingMenuItem";
 import { menuNote } from "./floatingMenu.css";
-import { useExtensionStorageContext } from "../extensionStorage/extensionStorage";
 import { DragId, DragType, useParseDragId } from "../drag/dragContext.util";
 import { BookmarkMenu } from "../../util/menu.bookmark";
 import { TabMenu } from "../../util/menu.tab";
 import browser from "webextension-polyfill";
+import { useExtensionStorage } from "../../util/storage.types";
 
 type MenuActionProps = Parameters<NormalMenuItem["action"]>;
 interface FloatingMenuItemsProps {
@@ -38,13 +38,13 @@ export const FloatingMenuItems: FC<FloatingMenuItemsProps> = ({ dragId }) => {
     },
     [menuActionProps]
   );
-  const extensionStorage = useExtensionStorageContext();
+  const [extensionStorage] = useExtensionStorage();
   const visibleItems = useMemo(
     () =>
       items.filter(
-        (item) => extensionStorage.data.menuVisiblity?.[item.id] !== false
+        (item) => extensionStorage?.menuVisibility?.[item.id] !== false
       ),
-    [extensionStorage.data.menuVisiblity, items]
+    [extensionStorage?.menuVisibility, items]
   );
 
   return (
