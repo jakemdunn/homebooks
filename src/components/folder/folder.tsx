@@ -7,12 +7,17 @@ import {
   folderIndicatorStyle,
   folderContentWrapperStyle,
   folderSubHeadingStyle,
+  folderActionsStyle,
+  folderHeaderStyles,
 } from "./folder.css";
 import { Flipped } from "react-flip-toolkit";
 import { bookmarksStyle } from "../bookmark/bookmarks.css";
-import { useDragContext } from "../drag/dragContext";
 import { useConditionalClassNames } from "../../util/useConditionalClassNames";
-import { DragId } from "../drag/dragContext.util";
+import { DragId } from "../drag/dragProvider.util";
+import { useDragContext } from "../drag/dragContext";
+import { useSettingsStorage } from "../../util/storage.types";
+import { TiThMenu } from "react-icons/ti";
+import { FloatingMenuButton } from "../floatingMenu/floatingMenuButton";
 
 export interface FolderProps
   extends React.DetailedHTMLProps<
@@ -34,26 +39,41 @@ export const Folder: FC<PropsWithChildren<FolderProps>> = ({
   ...props
 }) => {
   const dragState = useDragContext();
+  const [settings] = useSettingsStorage();
   const folderClassNames = useConditionalClassNames(
     {
       dragging: () => dragState.sourceIds.has(id),
       expanded: () => isOpen ?? false,
     },
-    folderStyle,
+    folderStyle
   );
 
   return (
     <div className={folderClassNames} draggable data-container {...props}>
-      <header onClick={onClick} className={folderHeaderWrapperStyles}>
-        <Flipped flipId={`title-${id}`}>
-          <div className={folderHeadingStyle}>
-            {title}
-            {detail && <span className={folderSubHeadingStyle}>{detail}</span>}
-          </div>
-        </Flipped>
-        <Flipped flipId={`indicator-${id}`}>
-          <div className={folderIndicatorStyle} />
-        </Flipped>
+      <header className={folderHeaderWrapperStyles}>
+        <div className={folderHeaderStyles} onClick={onClick}>
+          <Flipped flipId={`title-${id}`}>
+            <div className={folderHeadingStyle}>
+              {title}
+              {detail && (
+                <span className={folderSubHeadingStyle}>{detail}</span>
+              )}
+            </div>
+          </Flipped>
+          <Flipped flipId={`indicator-${id}`}>
+            <div className={folderIndicatorStyle} />
+          </Flipped>
+        </div>
+        {(settings?.contextMenus === "contextMenuOptionBoth" ||
+          settings?.contextMenus === "contextMenuOptionDisplayed") && (
+          <Flipped flipId={`folder-context-menu-${id}`}>
+            <div>
+              <FloatingMenuButton dragId={id} className={folderActionsStyle}>
+                <TiThMenu />
+              </FloatingMenuButton>
+            </div>
+          </Flipped>
+        )}
       </header>
       <Flipped flipId={`background-${id}`}>
         <div className={folderContentStyle} />

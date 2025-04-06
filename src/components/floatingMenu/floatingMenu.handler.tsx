@@ -1,50 +1,14 @@
-import {
-  createContext,
-  FC,
-  useCallback,
-  useContext,
-  useMemo,
-  useReducer,
-} from "react";
+import { FC, useCallback, useMemo, useReducer } from "react";
 import { FloatingMenuItems } from "../floatingMenu/floatingMenuItems";
-import { ReferenceType } from "@floating-ui/react";
+import { FloatingMenu } from "../floatingMenu/floatingMenu";
+import { DragId, getEventData } from "../drag/dragProvider.util";
+import { useSettingsStorage } from "../../util/storage.types";
 import {
-  FloatingMenu,
-  FloatingMenuContextState,
-  FloatingMenuProps,
-} from "../floatingMenu/floatingMenu";
-import { DragId, getEventData } from "../drag/dragContext.util";
-import { useSettingsStorage } from "../settings/settings";
-
-export interface FloatingMenusContextItem {
-  reference: ReferenceType;
-  state?: FloatingMenuContextState;
-  type: FloatingMenuProps["type"];
-}
-export interface FloatingMenusContextState {
-  menus: Record<DragId, FloatingMenusContextItem>;
-  dispatch: React.ActionDispatch<[FloatingMenusAction]>;
-}
-export type FloatingMenusAction =
-  | {
-      type: "removeMenu";
-      dragId: DragId;
-    }
-  | {
-      type: "addMenu";
-      dragId: DragId;
-      reference: ReferenceType;
-      menuType: FloatingMenuProps["type"];
-    }
-  | {
-      type: "setState";
-      dragId: DragId;
-      state: FloatingMenuContextState;
-    };
-const FloatingMenusContext = createContext<FloatingMenusContextState>(
-  {} as FloatingMenusContextState
-);
-export const useFloatingMenusContext = () => useContext(FloatingMenusContext);
+  FloatingMenusContextState,
+  FloatingMenusAction,
+  FloatingMenusContextItem,
+  FloatingMenusContext,
+} from "./floatingMenu.handler.context";
 
 export const FloatingMenuHandler: FC<
   React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>, HTMLElement>

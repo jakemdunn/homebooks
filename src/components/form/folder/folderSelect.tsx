@@ -1,6 +1,6 @@
 import { Field, FieldAttributes, FieldInputProps, FieldProps } from "formik";
-import { FC, useCallback, useEffect, useState } from "react";
-import { bookmarks } from "webextension-polyfill";
+import { FC, useCallback, useEffect, useMemo, useState } from "react";
+import { Bookmarks, bookmarks } from "webextension-polyfill";
 import {
   optionExpandStyle,
   optionGroupStyle,
@@ -8,68 +8,100 @@ import {
   optionStyle,
 } from "./folderSelect.css";
 import { useConditionalClassNames } from "../../../util/useConditionalClassNames";
+import {
+  useDataTransferFromNode,
+  useSetDataTransfer,
+} from "../../drag/dragProvider.util";
+import { HeightToggle } from "../../heightToggle/heightToggle";
 
-type FolderOption = { title: string; value: string; children?: FolderOption[] };
+type FolderOption = {
+  children?: FolderOption[];
+  node: Bookmarks.BookmarkTreeNode;
+  nodeIds: Set<string>;
+  title: string;
+};
 
 interface FolderSelectProps {
+  depth: number;
+  expanded: string[];
   field: FieldInputProps<unknown>;
   toggleExpanded: (id: string) => void;
-  expanded: string[];
-  depth: number;
 }
 const FolderSelectOption: FC<FolderOption & FolderSelectProps> = ({
-  value,
-  title,
-  field,
   children,
-  expanded,
-  toggleExpanded,
   depth,
+  expanded,
+  field,
+  node,
+  nodeIds,
+  title,
+  toggleExpanded,
 }) => {
+  const [source, dragId] = useDataTransferFromNode(node);
+  const onDragStart = useSetDataTransfer(source, dragId);
+  const isExpanded = useMemo(
+    () => expanded.includes(node.id),
+    [expanded, node.id]
+  );
   const expandClassNames = useConditionalClassNames(
     {
-      expanded: () => expanded.includes(value),
+      expanded: () => isExpanded,
     },
     optionExpandStyle
   );
   const optionClassNames = useConditionalClassNames(
     {
-      selected: () => value === field.value,
+      selected: () => node.id === field.value,
+      selectedInside: () =>
+        node.id !== field.value &&
+        typeof field.value === "string" &&
+        nodeIds.has(field.value),
     },
     optionGroupStyle
   );
   return (
-    <div key={value}>
-      <div
-        className={optionClassNames}
-        style={{ paddingLeft: `${depth * 0.5 + 1}rem` }}
-      >
+    <div
+      data-container
+      data-drag-id={`folder-${node.id}`}
+      draggable
+      key={node.id}
+      onDragStart={onDragStart}
+    >
+      <div className={optionClassNames}>
         {!!children?.length && (
-          <span
-            onClick={() => toggleExpanded(value)}
+          <button
+            type="button"
+            onClick={(event) => {
+              toggleExpanded(node.id);
+              event.stopPropagation();
+            }}
             className={expandClassNames}
+            style={{ left: `${depth * 0.5}rem` }}
           />
         )}
         <button
           type="button"
           className={optionStyle}
-          onClick={() => {
-            field.onChange(field.name)(value);
-          }}
           onBlur={field.onBlur(field.name)}
+          onClick={() => {
+            field.onChange(field.name)(node.id);
+          }}
+          style={{ paddingLeft: `${depth * 0.5 + 1}rem` }}
         >
           {title}
         </button>
       </div>
-      {!!children?.length && expanded.includes(value) && (
-        <FolderSelectOptions
-          expanded={expanded}
-          toggleExpanded={toggleExpanded}
-          field={field}
-          depth={depth + 1}
-        >
-          {children}
-        </FolderSelectOptions>
+      {!!children?.length && (
+        <HeightToggle hidden={!isExpanded}>
+          <FolderSelectOptions
+            depth={depth + 1}
+            expanded={expanded}
+            field={field}
+            toggleExpanded={toggleExpanded}
+          >
+            {children}
+          </FolderSelectOptions>
+        </HeightToggle>
       )}
     </div>
   );
@@ -77,7 +109,9 @@ const FolderSelectOption: FC<FolderOption & FolderSelectProps> = ({
 const FolderSelectOptions: FC<
   { children: FolderOption[] } & FolderSelectProps
 > = ({ children, ...props }) => {
-  return children.map((child) => <FolderSelectOption {...child} {...props} />);
+  return children.map((child) => (
+    <FolderSelectOption key={child.node.id} {...child} {...props} />
+  ));
 };
 
 export const FolderSelect: FC<FieldAttributes<unknown>> = (props) => {
@@ -101,21 +135,25 @@ export const FolderSelect: FC<FieldAttributes<unknown>> = (props) => {
           if (node.type === "folder" && node.title && !node.children) {
             result.push({
               title: node.title,
-              value: node.id,
+              node,
+              nodeIds: new Set([node.id]),
             });
           }
-          if (node.children && node.title) {
+          if (node.children) {
+            const children = getOptions(node.children);
+            const nodeIds = new Set([
+              node.id,
+              ...children.map((child) => [...child.nodeIds.values()]).flat(),
+            ]);
             return [
               ...result,
               {
-                title: node.title,
-                value: node.id,
-                children: getOptions(node.children),
+                title: node.title ? node.title : "Browser Root",
+                node,
+                children,
+                nodeIds,
               },
             ];
-          }
-          if (node.children) {
-            return [...result, ...getOptions(node.children)];
           }
           return result;
         }, []);
@@ -137,7 +175,7 @@ export const FolderSelect: FC<FieldAttributes<unknown>> = (props) => {
   }, []);
 
   return (
-    <div className={optionsStyle}>
+    <div className={optionsStyle} data-grid-container>
       <Field {...props}>
         {({ field }: FieldProps<unknown>) => {
           return (

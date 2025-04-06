@@ -6,6 +6,15 @@ export const homepageStyle = style({
   overflowY: "scroll",
   overflowX: "hidden",
   height: "100vh",
+  "@supports": {
+    "((scrollbar-gutter: stable) and (scrollbar-width: auto))": {
+      scrollbarWidth: "thin",
+      scrollbarGutter: "stable",
+    },
+    "(scrollbar-color: lime hotpink)": {
+      scrollbarColor: `color-mix(in srgb, ${globalTheme.colors.background.action} 70%, transparent) transparent`,
+    },
+  },
 });
 
 export const actionsHeight = createVar();
@@ -58,8 +67,7 @@ export const actionButtonStyle = style({
 });
 
 export const contentStyle = style({
-  display: "grid",
-  gridTemplateColumns: "1fr max(35ch, 30vw)",
+  display: "flex",
   gap: "1rem",
   padding: "0 1rem",
 });

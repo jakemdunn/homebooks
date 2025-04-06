@@ -1,9 +1,9 @@
 import { FC, useMemo } from "react";
 import { useConditionalClassNames } from "../../util/useConditionalClassNames";
 import { buttonContentsStyle, buttonStyle } from "./floatingMenu.css";
-import { FloatingMenuContextState } from "./floatingMenu";
-import { DragId } from "../drag/dragContext.util";
-import { useFloatingMenusContext } from "./floatingMenu.handler";
+import { DragId } from "../drag/dragProvider.util";
+import { FloatingMenuContextState } from "./floatingMenu.context";
+import { useFloatingMenusContext } from "./floatingMenu.handler.context";
 
 export const FloatingMenuButton: FC<
   { dragId: DragId } & React.DetailedHTMLProps<
@@ -28,22 +28,23 @@ export const FloatingMenuButton: FC<
       open: () => !!open,
       mounted: () => !!isMounted,
     },
-    className,
     buttonStyle,
-    placement
+    placement,
+    className
   );
 
   return (
     <button
       type="button"
-      onClick={(event) =>
+      onClick={(event) => {
+        event.stopPropagation();
         dispatch({
           type: "addMenu",
           menuType: "menu",
           dragId,
           reference: event.target as HTMLElement,
-        })
-      }
+        });
+      }}
       ref={(button) => {
         if (buttonRef) {
           buttonRef.current = button as Element;

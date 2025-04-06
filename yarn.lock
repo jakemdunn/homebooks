@@ -1065,6 +1065,13 @@
     modern-ahocorasick "^1.0.0"
     picocolors "^1.0.0"
 
+"@vanilla-extract/dynamic@^2.1.2":
+  version "2.1.2"
+  resolved "https://registry.yarnpkg.com/@vanilla-extract/dynamic/-/dynamic-2.1.2.tgz#b1d1c1e0e392934c5a3bbb53f99069a7721311ac"
+  integrity sha512-9BGMciD8rO1hdSPIAh1ntsG4LPD3IYKhywR7VOmmz9OO4Lx1hlwkSg3E6X07ujFx7YuBfx0GDQnApG9ESHvB2A==
+  dependencies:
+    "@vanilla-extract/private" "^1.0.6"
+
 "@vanilla-extract/integration@^8.0.1":
   version "8.0.1"
   resolved "https://registry.yarnpkg.com/@vanilla-extract/integration/-/integration-8.0.1.tgz#0a99a5e4614c2d383f037bcd95f46d6fc25352dc"
@@ -1716,6 +1723,11 @@ eslint-plugin-react-hooks@^5.1.0:
   version "5.1.0"
   resolved "https://registry.yarnpkg.com/eslint-plugin-react-hooks/-/eslint-plugin-react-hooks-5.1.0.tgz#3d34e37d5770866c34b87d5b499f5f0b53bf0854"
   integrity sha512-mpJRtPgHN2tNAvZ35AMfqeB3Xqeo273QxrHJsbBEPWODRM4r0yB6jfoROqKEYrOn27UtRPpcpHc2UqyBSuUNTw==
+
+eslint-plugin-react-refresh@^0.4.19:
+  version "0.4.19"
+  resolved "https://registry.yarnpkg.com/eslint-plugin-react-refresh/-/eslint-plugin-react-refresh-0.4.19.tgz#f15020c0caa58e33fc4efda27d328281ca74e53d"
+  integrity sha512-eyy8pcr/YxSYjBoqIFSrlbn9i/xvxUFa8CjzAYo9cFjgGXqq1hyjihcpZvxRLalpaWmueWR81xn7vuKmAFijDQ==
 
 eslint-scope@^8.2.0:
   version "8.2.0"

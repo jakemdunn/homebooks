@@ -2,11 +2,15 @@ import { FC, useCallback, useEffect, useMemo, useState } from "react";
 import { MenuItems, NormalMenuItem } from "../../util/menu.constants";
 import { FloatingMenuItem, FloatingMenuSeparator } from "./floatingMenuItem";
 import { menuNote } from "./floatingMenu.css";
-import { DragId, DragType, useParseDragId } from "../drag/dragContext.util";
+import { DragId, DragType, useParseDragId } from "../drag/dragProvider.util";
 import { BookmarkMenu } from "../../util/menu.bookmark";
 import { TabMenu } from "../../util/menu.tab";
 import browser from "webextension-polyfill";
 import { useExtensionStorage } from "../../util/storage.types";
+import { FolderMenu } from "../../util/menu.folder";
+import { useStorage } from "../../util/useStorage";
+import { SETTINGS_PANEL_VISIBLE } from "../settings/settings.util";
+import { useFloatingMenuContext } from "./floatingMenu.context";
 
 type MenuActionProps = Parameters<NormalMenuItem["action"]>;
 interface FloatingMenuItemsProps {
@@ -18,7 +22,7 @@ export const FloatingMenuItems: FC<FloatingMenuItemsProps> = ({ dragId }) => {
     () => ({
       bookmark: BookmarkMenu,
       tab: TabMenu,
-      folder: BookmarkMenu, // TODO: FolderMenu
+      folder: FolderMenu,
       window: BookmarkMenu, // TODO: WindowMenu
     }),
     []
@@ -27,6 +31,7 @@ export const FloatingMenuItems: FC<FloatingMenuItemsProps> = ({ dragId }) => {
   const [menuActionProps, setMenuActionProps] = useState<MenuActionProps>([{}]);
   useEffect(() => {
     (async () => {
+      if (type === "folder") setMenuActionProps([{ bookmarkId: id }]);
       if (type === "bookmark") setMenuActionProps([{ bookmarkId: id }]);
       if (type === "tab")
         setMenuActionProps([{}, await browser.tabs.get(parseInt(id))]);
@@ -47,6 +52,23 @@ export const FloatingMenuItems: FC<FloatingMenuItemsProps> = ({ dragId }) => {
     [extensionStorage?.menuVisibility, items]
   );
 
+  const [, setOpen] = useStorage<{
+    [SETTINGS_PANEL_VISIBLE]: boolean;
+  }>(SETTINGS_PANEL_VISIBLE, "session");
+  const { closeMenu } = useFloatingMenuContext();
+
+  const [{ contextMenuNoteDismissed }, setNoteDismissed] = useStorage<{
+    contextMenuNoteDismissed: boolean;
+  }>("contextMenuNoteDismissed", "sync");
+
+  const openSettings = () => {
+    setOpen({ [SETTINGS_PANEL_VISIBLE]: true });
+    closeMenu();
+  };
+  const dismissNote = () => {
+    setNoteDismissed({ contextMenuNoteDismissed: true });
+  };
+
   return (
     <>
       {visibleItems.map((item) =>
@@ -60,12 +82,16 @@ export const FloatingMenuItems: FC<FloatingMenuItemsProps> = ({ dragId }) => {
           <FloatingMenuSeparator key={item.id} />
         )
       )}
-      {/* TODO: Make hint dismissable */}
-      {/* TODO: Add direct link to settings */}
-      <div className={menuNote}>
-        Did you know you can also use the right click menu? Disable "Item Menus"
-        in settings to remove these menus and save space.
-      </div>
+      {!contextMenuNoteDismissed && (
+        <div className={menuNote}>
+          Did you know you can also use the right click menu? Disable "Item
+          Menus" in <a onClick={openSettings}>settings</a> to remove these menus
+          and save space.
+          <p>
+            <a onClick={dismissNote}>Dismiss</a>
+          </p>
+        </div>
+      )}
     </>
   );
 };

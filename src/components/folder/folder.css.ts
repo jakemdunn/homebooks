@@ -31,18 +31,41 @@ export const folderHeaderWrapperStyles = style({
   display: "flex",
   justifyContent: "space-between",
   alignItems: "center",
-  padding: `0 1rem`,
+  padding: `0 0.25rem 0 0`,
   zIndex: 80,
+});
+
+export const folderHeaderStyles = style({
+  display: "flex",
+  justifyContent: "space-between",
+  alignItems: "center",
+  padding: `0 0.5rem 0 1rem`,
+  flex: "1 0 auto",
+});
+
+export const folderActionsStyle = style({
+  border: "none",
+  background: globalTheme.colors.background.level1,
+  color: globalTheme.colors.text.default,
+  fontSize: "1rem",
+  display: "flex",
+  justifyContent: "center",
+  alignItems: "center",
+  cursor: "pointer",
+  transition: "all 0.2s ease-in-out",
+  flex: "0 0 auto",
+  height: `calc(${folderHeadingSize} - 0.5rem)`,
+  padding: `0 0.5rem`,
+  ":hover": {
+    color: globalTheme.colors.text.inverse,
+  },
 });
 
 export const folderContentStyle = style({
   background: globalTheme.colors.background.level1,
   position: "absolute",
   zIndex: 0,
-  top: "0.25rem",
-  right: "0.25rem",
-  bottom: "0.25rem",
-  left: "0.25rem",
+  inset: "0.25rem",
   transition: "background 0.2s ease-in-out",
   selectors: {
     [`${folderHeaderWrapperStyles}:hover + &`]: {

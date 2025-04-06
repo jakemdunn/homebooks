@@ -2,12 +2,11 @@ import { FC, useMemo } from "react";
 import browser from "webextension-polyfill";
 import { Folder } from "../folder/folder";
 import { Item } from "../item/item";
-import { useBookmarkContext } from "./bookmarkContext";
 import {
-  DataTransferSource,
-  DragId,
+  useDataTransferFromNode,
   useSetDataTransfer,
-} from "../drag/dragContext.util";
+} from "../drag/dragProvider.util";
+import { useBookmarkContext } from "./bookmarkContext";
 
 export const Bookmark: FC<{ node: browser.Bookmarks.BookmarkTreeNode }> = ({
   node,
@@ -21,22 +20,7 @@ export const Bookmark: FC<{ node: browser.Bookmarks.BookmarkTreeNode }> = ({
     [node.url]
   );
 
-  const dragId = useMemo<DragId>(
-    () => `${node.type === "bookmark" ? "bookmark" : "folder"}-${node.id}`,
-    [node.id, node.type]
-  );
-  const source = useMemo<DataTransferSource | DataTransferSource[]>(
-    () =>
-      node.type === "bookmark"
-        ? { url: node.url, title: node.title, type: "bookmark", source: node }
-        : (node.children?.map((child) => ({
-            url: child.url,
-            title: child.title,
-            type: "bookmark",
-            source: child,
-          })) ?? []),
-    [node]
-  );
+  const [source, dragId] = useDataTransferFromNode(node);
   const onDragStart = useSetDataTransfer(source, dragId);
 
   const [bookmarkCount, folderCount] = useMemo<[number, number]>(
