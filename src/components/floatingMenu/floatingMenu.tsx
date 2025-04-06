@@ -1,7 +1,6 @@
 import {
   useFloating,
   useInteractions,
-  Placement,
   autoUpdate,
   flip,
   FloatingList,
@@ -13,36 +12,23 @@ import {
   useTypeahead,
 } from "@floating-ui/react";
 import {
-  createContext,
   FC,
   PropsWithChildren,
   ReactElement,
   useCallback,
-  useContext,
   useEffect,
   useMemo,
   useRef,
   useState,
 } from "react";
 import { useConditionalClassNames } from "../../util/useConditionalClassNames";
-import { DragId } from "../drag/dragContext.util";
+import { DragId } from "../drag/dragProvider.util";
 import { menuStyle } from "./floatingMenu.css";
-import { useFloatingMenusContext } from "./floatingMenu.handler";
-export interface FloatingMenuContextState {
-  activeIndex?: number | null;
-  getItemProps: ReturnType<typeof useInteractions>["getItemProps"];
-  closeMenu: () => void;
-  open: boolean;
-  isMounted: boolean;
-  placement: Placement;
-  buttonRef?: React.RefObject<Element | undefined>; //TODO: Deleted, or refactored
-  setReference: ReturnType<typeof useFloating>["refs"]["setReference"];
-  getReferenceProps: ReturnType<typeof useInteractions>["getReferenceProps"];
-}
-export const FloatingMenuContext = createContext<FloatingMenuContextState>(
-  {} as FloatingMenuContextState
-);
-export const useFloatingMenuContext = () => useContext(FloatingMenuContext);
+import {
+  FloatingMenuContext,
+  FloatingMenuContextState,
+} from "./floatingMenu.context";
+import { useFloatingMenusContext } from "./floatingMenu.handler.context";
 
 export interface FloatingMenuProps {
   items: ReactElement;
@@ -92,7 +78,6 @@ export const FloatingMenu: FC<PropsWithChildren<FloatingMenuProps>> = ({
     referencePress: true,
     referencePressEvent: "click",
     outsidePress: (event) => {
-      console.log(event);
       if (event.button !== 2) return true;
       const closestDragElement = (event.target as HTMLElement)?.closest(
         `[data-drag-id]`

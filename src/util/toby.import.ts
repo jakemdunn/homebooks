@@ -1,7 +1,7 @@
 import { useCallback } from "react";
 import { array, number, object, string } from "yup";
 import browser from "webextension-polyfill";
-import { useSettingsStorage } from "../components/settings/settings";
+import { useSettingsStorage } from "./storage.types";
 
 export const tobySchema = object({
   version: number()

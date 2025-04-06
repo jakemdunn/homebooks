@@ -1,10 +1,17 @@
 import { FC, useCallback, useEffect, useMemo, useState } from "react";
 import browser from "webextension-polyfill";
 import { Flipper } from "react-flip-toolkit";
-import { tabsActionsStyle, tabsWrapperStyle } from "./tabs.css";
+import {
+  tabsActionsStyle,
+  tabsContentStyle,
+  tabsHeight,
+  tabsWrapperStyle,
+} from "./tabs.css";
 import { WindowComponent } from "./window";
-import { extensionURL } from "../drag/dragContext.util";
+import { extensionURL } from "../drag/dragProvider.util";
 import { PiAppWindowFill } from "react-icons/pi";
+import { useResizeDetector } from "react-resize-detector";
+import { assignInlineVars } from "@vanilla-extract/dynamic";
 
 export const TabsProvider: FC = () => {
   const [tabs, setTabs] = useState<
@@ -108,26 +115,35 @@ export const TabsProvider: FC = () => {
     []
   );
 
+  const { height, ref } = useResizeDetector();
+  const topOffset = useMemo(() => (height ?? 0) + 100, [height]);
+
   return (
     <div className={tabsWrapperStyle}>
       <header className={tabsActionsStyle}>
         {tabs?.length} Window{(tabs?.length ?? 0) > 1 ? "s " : " "}
         <PiAppWindowFill />
       </header>
-      <Flipper flipKey={flipKey} spring="noWobble">
-        <div data-grid-container>
-          {tabs?.map((window, index) => (
-            <WindowComponent
-              {...window}
-              isOpen={!closedTabs.has(window.windowId)}
-              onClick={onFolderClick(window.windowId)}
-              index={index}
-              id={`window-${window.windowId}`}
-              key={window.windowId}
-            />
-          ))}
-        </div>
-      </Flipper>
+      <div
+        className={tabsContentStyle}
+        style={assignInlineVars({ [tabsHeight]: `${topOffset}px` })}
+        ref={ref}
+      >
+        <Flipper flipKey={flipKey} spring="noWobble">
+          <div data-grid-container>
+            {tabs?.map((window, index) => (
+              <WindowComponent
+                {...window}
+                isOpen={!closedTabs.has(window.windowId)}
+                onClick={onFolderClick(window.windowId)}
+                index={index}
+                id={`window-${window.windowId}`}
+                key={window.windowId}
+              />
+            ))}
+          </div>
+        </Flipper>
+      </div>
     </div>
   );
 };

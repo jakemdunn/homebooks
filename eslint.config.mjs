@@ -3,12 +3,14 @@
 import eslint from "@eslint/js";
 import tseslint from "typescript-eslint";
 import hooksPlugin from "eslint-plugin-react-hooks";
+import reactRefresh from "eslint-plugin-react-refresh";
 
 export default tseslint.config(
   {
     ignores: ["dist"],
   },
   eslint.configs.recommended,
+  reactRefresh.configs.recommended,
   tseslint.configs.recommended,
   {
     plugins: {
@@ -17,5 +19,5 @@ export default tseslint.config(
     },
     // @ts-ignore
     rules: hooksPlugin.configs.recommended.rules,
-  },
+  }
 );

@@ -37,30 +37,62 @@
   },
   "pasteBookmark": {
     "message": "Paste",
-    "description": "Create a new bookmark using the clipboard contents."
+    "description": "Insert the clipboard contents at this location."
   },
   "createBookmark": {
     "message": "Create Bookmark...",
     "description": "Create a new bookmark from the selected tab."
   },
   "contextMenuLabel": {
-    "message": "Context Menu Display",
+    "message": "Context Menu",
     "description": "How context menus per item are accessed."
   },
   "contextMenuOptionBoth": {
-    "message": "On item and right click",
+    "message": "On Item and Right Click",
     "description": "Available via right click or visible on the item."
   },
   "contextMenuOptionDisplayed": {
-    "message": "On item",
+    "message": "On Item",
     "description": "Available on the item."
   },
   "contextMenuOptionRightClick": {
-    "message": "Right click only",
+    "message": "Right Click",
     "description": "Available via right click."
   },
   "rootFolderLabel": {
     "message": "Root Folder",
     "description": "Which bookmarks folder should HomeBooks manage."
+  },
+  "openFolderInCurrentWindow": {
+    "message": "Open folder into current window",
+    "description": "Opens all bookmarks in the folder into the current window."
+  },
+  "openFolderInNewWindow": {
+    "message": "Open folder into new window",
+    "description": "Opens all bookmarks in the folder into a new window."
+  },
+  "openFolderInPrivateWindow": {
+    "message": "Open folder into private window",
+    "description": "Opens all bookmarks in the folder into a private window."
+  },
+  "editFolder": {
+    "message": "Edit Folder",
+    "description": "Edit the folder title."
+  },
+  "deleteFolder": {
+    "message": "Delete Folder",
+    "description": "Delete the folder and all child nodes."
+  },
+  "cutFolder": {
+    "message": "Cut Folder",
+    "description": "Remove the folder and its children and place it on the clipboard."
+  },
+  "copyFolder": {
+    "message": "Copy Folder",
+    "description": "Copy the folder and its children onto the clipboard."
+  },
+  "pasteFolder": {
+    "message": "Paste",
+    "description": "Create the clipboard contents into this folder."
   }
 }

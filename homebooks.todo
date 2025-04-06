@@ -5,22 +5,32 @@ Bugs:
   ☐ Remove orphaned native right click code
   ☐ Peeking not working
   ☐ Unable to just drop back onto existing space
-  ☐ Unable to paste folder copied from bookmarks bar
+  ✔ Unable to paste folder copied from bookmarks bar @done(25-04-05 18:51)
+  ✔ Animation lag on height toggle. Need to disable transition when not actively hiding. @done(25-03-22 13:50)
+  ☐ Unable to paste folder from homebooks to bookmarks bar
+  ☐ Tags lost when cutting and pasting
 Core Features:
   ☐ Global Search
   ✔ Settings Panel @done(25-03-16 15:19)
   ✔ Select Root Folder @done(25-03-16 15:20)
+  ✔ Open entire folder into window @done(25-04-05 18:50)
+  ✔ Folder context menus @done(25-04-05 18:50)
   ☐ Input/Form styling
   ☐ Multi Select for copy/paste & drag/drop
   ☐ Edit Popups
   ☐ Create new folder
+  ☐ Drag folders/bookmarks to windows column to open
   ☐ Tags
   ☐ Save full window to new folder
   ☐ Import from Toby
   ☐ Confirm configuration as proper background script: https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/Background_scripts#convert_to_non-persistent
   ☐ Help section with tips & short video clips
   ☐ Release Notes
-  ☐ Open entire folder into window
+  ☐ Open folder in folder select if child folder is selected
+  ☐ Catch and display any errors
+  ☐ Window group context menus
+  ☐ Tab context menus incomplete
+  ☐ Make context menus aware of current clipboard items / number of tabs being opened and display the count
 Nice To Have:
   ☐ Cross Browser Sync (xBrowserSync? floccus!?)
   ☐ Multi Browser Support

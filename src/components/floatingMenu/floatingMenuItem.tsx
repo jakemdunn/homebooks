@@ -2,7 +2,7 @@ import { useListItem } from "@floating-ui/react";
 import { FC } from "react";
 import { NormalMenuItem } from "../../util/menu.constants";
 import { menuItem, menuItemIcon } from "./floatingMenu.css";
-import { useFloatingMenuContext } from "./floatingMenu";
+import { useFloatingMenuContext } from "./floatingMenu.context";
 
 export const FloatingMenuSeparator: FC = () => <hr />;
 

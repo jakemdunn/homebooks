@@ -1,39 +1,22 @@
 import {
-  createContext,
   FC,
-  PropsWithChildren,
   useCallback,
-  useContext,
   useEffect,
   useMemo,
   useReducer,
   useRef,
   useState,
 } from "react";
-import { indicatorStyle } from "./dragContext.css";
+import { indicatorStyle } from "./dragProvider.css";
 import {
   DataTransferSource,
   DragId,
-  DragPosition,
-  getEventData,
   getSources,
   processDataTransfer,
-} from "./dragContext.util";
+  useGetEventData,
+} from "./dragProvider.util";
 import { FloatingMenuHandler } from "../floatingMenu/floatingMenu.handler";
-
-interface DragState {
-  dragging: boolean;
-  sourceIds: Set<DragId>;
-  destinationId?: DragId;
-  position?: DragPosition;
-  peekedIds: Set<DragId>;
-}
-interface DragContextProps extends DragState {
-  sources: DataTransferSource[];
-}
-
-const DragContext = createContext<DragContextProps>({} as DragContextProps);
-export const useDragContext = () => useContext(DragContext);
+import { DragState, DragContextProps, DragContext } from "./dragContext";
 
 type DragAction =
   | {
@@ -53,7 +36,10 @@ type DragAction =
       action: "endDrag" | "removeDestination";
     };
 
-export const DragProvider: FC<PropsWithChildren> = ({ children }) => {
+export const DragProvider: FC<
+  React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>, HTMLElement>
+> = ({ children, ...props }) => {
+  const { eventData, getEventData } = useGetEventData();
   const [dragState, dragDispatch] = useReducer<DragState, [DragAction]>(
     (state, action) => {
       switch (action.action) {
@@ -186,7 +172,7 @@ export const DragProvider: FC<PropsWithChildren> = ({ children }) => {
         id,
       });
     },
-    []
+    [getEventData]
   );
 
   const onDragEnd = useCallback<React.DragEventHandler<HTMLElement>>(() => {
@@ -203,7 +189,7 @@ export const DragProvider: FC<PropsWithChildren> = ({ children }) => {
         action: "removeDestination",
       });
     },
-    []
+    [getEventData]
   );
 
   const onDragOver = useCallback<React.DragEventHandler<HTMLElement>>(
@@ -217,7 +203,7 @@ export const DragProvider: FC<PropsWithChildren> = ({ children }) => {
         position: getPosition(target, event),
       });
     },
-    [getPosition]
+    [getEventData, getPosition]
   );
 
   const onDrop = useCallback<React.DragEventHandler<HTMLElement>>(
@@ -232,7 +218,7 @@ export const DragProvider: FC<PropsWithChildren> = ({ children }) => {
       processDataTransfer(event, dragState.position);
       event.preventDefault();
     },
-    [dragState.position]
+    [dragState.position, getEventData]
   );
 
   const [indicator, setIndicator] = useState<React.CSSProperties>({});
@@ -241,9 +227,7 @@ export const DragProvider: FC<PropsWithChildren> = ({ children }) => {
       setIndicator({});
       return;
     }
-    const target = document.querySelector(
-      `[data-drag-id="${dragState.destinationId}"]`
-    );
+    const { target } = eventData.current ?? {};
     const container = target?.closest("[data-grid-container]");
     if (!target || !container) {
       setIndicator({});
@@ -295,7 +279,7 @@ export const DragProvider: FC<PropsWithChildren> = ({ children }) => {
         });
         break;
     }
-  }, [dragState]);
+  }, [dragState, eventData]);
 
   const dragOverTimeout = useRef<NodeJS.Timeout>(undefined);
   useEffect(() => {
@@ -312,7 +296,7 @@ export const DragProvider: FC<PropsWithChildren> = ({ children }) => {
       }, 700);
     }
     return () => clearTimeout(dragOverTimeout.current);
-  });
+  }, [dragState.destinationId, dragState.position]);
 
   const dragContextState = useMemo<DragContextProps>(
     () => ({
@@ -330,6 +314,7 @@ export const DragProvider: FC<PropsWithChildren> = ({ children }) => {
         onDragLeave={onDragLeave}
         onDragOver={onDragOver}
         onDrop={onDrop}
+        {...props}
       >
         <div className={indicatorStyle} style={indicator} />
         {children}

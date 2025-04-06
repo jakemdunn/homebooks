@@ -5,7 +5,7 @@ import {
   DataTransferSource,
   DragId,
   useSetDataTransfer,
-} from "../drag/dragContext.util";
+} from "../drag/dragProvider.util";
 
 export const Tab: FC<{ value: browser.Tabs.Tab }> = ({ value }) => {
   const url = useMemo(() => new URL(value.url!), [value.url]);

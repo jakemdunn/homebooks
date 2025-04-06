@@ -6,7 +6,7 @@ import {
   DataTransferSource,
   DragId,
   useSetDataTransfer,
-} from "../drag/dragContext.util";
+} from "../drag/dragProvider.util";
 
 export interface WindowProps extends FolderProps {
   windowId: string;
@@ -32,8 +32,14 @@ export const WindowComponent: FC<WindowProps> = ({
 
   const dragId = useMemo<DragId>(() => `window-${windowId}`, [windowId]);
   const source = useMemo<DataTransferSource[]>(
-    () => tabs.map((tab) => ({ url: tab.url, title: tab.title })),
-    [tabs],
+    () =>
+      tabs.map((tab) => ({
+        url: tab.url,
+        title: tab.title,
+        type: "tab",
+        source: tab,
+      })),
+    [tabs]
   );
   const onDragStart = useSetDataTransfer(source, dragId);
 

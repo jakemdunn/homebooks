@@ -1,6 +1,6 @@
-import browser from "webextension-polyfill";
+import browser, { Bookmarks } from "webextension-polyfill";
 import { useDragContext } from "./dragContext";
-import { useCallback, useMemo } from "react";
+import { useCallback, useMemo, useRef } from "react";
 
 export const extensionURL = browser.runtime.getURL("");
 
@@ -54,6 +54,20 @@ export const getEventData = (
     target: target ?? undefined,
     id: target?.getAttribute("data-drag-id") as DragId,
   };
+};
+
+export const useGetEventData = () => {
+  const eventData = useRef<ReturnType<typeof getEventData> | undefined>(
+    undefined
+  );
+  const trackedGetEventData = useCallback<typeof getEventData>(
+    (...params: Parameters<typeof getEventData>) => {
+      eventData.current = getEventData(...params);
+      return eventData.current;
+    },
+    []
+  );
+  return { eventData, getEventData: trackedGetEventData };
 };
 
 const parseDataTransfer = (dataTransfer: DataTransfer): DataTransferTypes => {
@@ -123,9 +137,10 @@ const processBookmarkMove = async (
 
   const targetBounds = target.getBoundingClientRect();
   const containerBounds = container.getBoundingClientRect();
-  const columns = containerBounds.width / targetBounds.width;
-  const columnIndex =
-    (targetBounds.left - containerBounds.left) / targetBounds.width;
+  const columns = Math.round(containerBounds.width / targetBounds.width);
+  const columnIndex = Math.round(
+    (targetBounds.left - containerBounds.left) / targetBounds.width
+  );
 
   const getTargetIndex: Record<DragPosition, () => number> = {
     top: () => destinationNode.index! - columnIndex,
@@ -251,6 +266,28 @@ export const getSources = async (
     .filter((fetched) => fetched !== undefined && fetched.title);
 
   return sources?.length ? sources : undefined;
+};
+
+export const useDataTransferFromNode = (
+  node: Bookmarks.BookmarkTreeNode
+): [DataTransferSource | DataTransferSource[], DragId] => {
+  const dragId = useMemo<DragId>(
+    () => `${node.type === "bookmark" ? "bookmark" : "folder"}-${node.id}`,
+    [node.id, node.type]
+  );
+  const source = useMemo<DataTransferSource | DataTransferSource[]>(
+    () =>
+      node.type === "bookmark"
+        ? { url: node.url, title: node.title, type: "bookmark", source: node }
+        : (node.children?.map((child) => ({
+            url: child.url,
+            title: child.title,
+            type: "bookmark",
+            source: child,
+          })) ?? []),
+    [node]
+  );
+  return [source, dragId];
 };
 
 export const useSetDataTransfer = (

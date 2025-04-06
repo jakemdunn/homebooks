@@ -1,27 +1,15 @@
 import {
-  createContext,
   FC,
   PropsWithChildren,
   useCallback,
-  useContext,
   useEffect,
   useMemo,
   useState,
 } from "react";
 import browser from "webextension-polyfill";
+import { BookmarkState, BookmarkContext } from "./bookmarkContext";
 import { useDragContext } from "../drag/dragContext";
-import { useSettingsStorage } from "../settings/settings";
-
-interface BookmarkState {
-  bookmarks?: browser.Bookmarks.BookmarkTreeNode[];
-  expanded: string[];
-  toggle: (folderId: string) => void;
-  expandAll: () => void;
-  collapseAll: () => void;
-}
-
-const BookmarkContext = createContext<BookmarkState>({} as BookmarkState);
-export const useBookmarkContext = () => useContext(BookmarkContext);
+import { useSettingsStorage } from "../../util/storage.types";
 
 export const BookmarkProvider: FC<PropsWithChildren> = (props) => {
   const [storeExpanded, setExpanded] = useState<string[]>([]);

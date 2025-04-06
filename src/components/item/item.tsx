@@ -11,10 +11,10 @@ import {
 } from "./item.css";
 import { useDragContext } from "../drag/dragContext";
 import { useConditionalClassNames } from "../../util/useConditionalClassNames";
-import { DragId } from "../drag/dragContext.util";
+import { DragId } from "../drag/dragProvider.util";
 import { TiThMenu } from "react-icons/ti";
 import { FloatingMenuButton } from "../floatingMenu/floatingMenuButton";
-import { useSettingsStorage } from "../settings/settings";
+import { useSettingsStorage } from "../../util/storage.types";
 
 export type ItemProps = Omit<
   React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>, HTMLElement>,

@@ -65,7 +65,7 @@ export const menuStyle = style({
   color: globalTheme.colors.text.inverse,
   background: `color-mix(in srgb, ${globalTheme.colors.background.inverse}, transparent 10%)`,
   backdropFilter: "blur(5px)",
-  zIndex: 90,
+  zIndex: 300,
   margin: 0,
   padding: `0.5rem`,
   listStyle: "none",
@@ -168,4 +168,18 @@ export const menuNote = style({
       display: "none",
     },
   },
+});
+
+globalStyle(`${menuNote} p`, {
+  margin: "0.15rem 0 0",
+  textAlign: "right",
+});
+globalStyle(`${menuNote} a`, {
+  color: globalTheme.colors.text.inverse,
+  textDecoration: "underline",
+  fontWeight: 500,
+  cursor: "pointer",
+});
+globalStyle(`${menuNote} a:hover`, {
+  color: globalTheme.colors.text.action,
 });

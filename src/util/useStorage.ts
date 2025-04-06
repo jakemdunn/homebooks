@@ -10,15 +10,15 @@ type StorageSet = (typeof storage)[StorageTypes]["set"];
 export function useStorage<T extends object>(
   key: T,
   type?: StorageTypes
-): [T | undefined, StorageSet];
+): [T, StorageSet];
 export function useStorage<T extends StorageResponse, Keys = (keyof T)[]>(
   key?: keyof T | Keys | null,
   type?: StorageTypes
-): [T | undefined, StorageSet];
+): [T, StorageSet];
 export function useStorage<T extends StorageResponse, Keys = (keyof T)[]>(
   key: T | keyof T | Keys,
   type: StorageTypes = "local"
-): [T | undefined, StorageSet] {
+): [T, StorageSet] {
   const [data, setData] = useState<T>();
   const keys = useMemo<Keys | null>(() => {
     if (key === null) return null;
@@ -50,5 +50,5 @@ export function useStorage<T extends StorageResponse, Keys = (keyof T)[]>(
     return () => storage[type].onChanged.removeListener(getData);
   }, [key, keys, type]);
 
-  return [data, storage[type].set];
+  return [data ?? ({} as T), storage[type].set];
 }

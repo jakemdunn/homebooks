@@ -3,6 +3,7 @@ import { BOOKMARK_MENU_ACTIONS, BookmarkMenu } from "./util/menu.bookmark";
 import { MenuItems, NormalMenuItem } from "./util/menu.constants";
 import { TabMenu } from "./util/menu.tab";
 import { ExtensionStorageData } from "./util/storage.types";
+import { FOLDER_MENU_ACTIONS } from "./util/menu.folder";
 
 const createMenuItem = async (
   props: Partial<browser.Menus.CreateCreatePropertiesType>
@@ -58,6 +59,7 @@ const handlePermissionsUpdate = async () => {
   await browser.storage.local.set({
     menuVisibility: {
       [BOOKMARK_MENU_ACTIONS.openInPrivateWindow]: visible,
+      [FOLDER_MENU_ACTIONS.openInPrivateWindow]: visible,
     },
   } as ExtensionStorageData);
   await browser.menus.update(BOOKMARK_MENU_ACTIONS.openInPrivateWindow, {
