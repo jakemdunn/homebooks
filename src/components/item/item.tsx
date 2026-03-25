@@ -1,5 +1,10 @@
-import { FC, PropsWithChildren, ReactNode, useMemo } from "react";
-import { Flipped } from "react-flip-toolkit";
+import {
+  FC,
+  PropsWithChildren,
+  ReactNode,
+  useMemo,
+  ViewTransition,
+} from "react";
 import {
   itemWrapperStyle,
   itemStyle,
@@ -63,7 +68,7 @@ export const Item: FC<PropsWithChildren<ItemProps>> = ({
   );
 
   return (
-    <Flipped flipId={id}>
+    <ViewTransition name={id}>
       <div className={itemClassNames} {...props}>
         {onClick && (
           <button type="button" className={itemStyle} onClick={onClick}>
@@ -82,6 +87,6 @@ export const Item: FC<PropsWithChildren<ItemProps>> = ({
           </FloatingMenuButton>
         )}
       </div>
-    </Flipped>
+    </ViewTransition>
   );
 };

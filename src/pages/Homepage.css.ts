@@ -54,7 +54,7 @@ export const actionButtonStyle = style({
     background: globalTheme.colors.text.header,
     color: globalTheme.colors.text.highContrast,
   },
-  ":last-child": {
+  ":last-of-type": {
     borderTopRightRadius: 4,
     borderBottomRightRadius: 4,
   },

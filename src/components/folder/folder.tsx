@@ -1,4 +1,4 @@
-import { FC, PropsWithChildren, ReactNode } from "react";
+import { FC, PropsWithChildren, ReactNode, ViewTransition } from "react";
 import {
   folderStyle,
   folderHeadingStyle,
@@ -10,7 +10,6 @@ import {
   folderActionsStyle,
   folderHeaderStyles,
 } from "./folder.css";
-import { Flipped } from "react-flip-toolkit";
 import { bookmarksStyle } from "../bookmark/bookmarks.css";
 import { useConditionalClassNames } from "../../util/useConditionalClassNames";
 import { DragId } from "../drag/dragProvider.util";
@@ -52,41 +51,39 @@ export const Folder: FC<PropsWithChildren<FolderProps>> = ({
     <div className={folderClassNames} draggable data-container {...props}>
       <header className={folderHeaderWrapperStyles}>
         <div className={folderHeaderStyles} onClick={onClick}>
-          <Flipped flipId={`title-${id}`}>
+          <ViewTransition name={`title-${id}`}>
             <div className={folderHeadingStyle}>
               {title}
               {detail && (
                 <span className={folderSubHeadingStyle}>{detail}</span>
               )}
             </div>
-          </Flipped>
-          <Flipped flipId={`indicator-${id}`}>
+          </ViewTransition>
+          <ViewTransition name={`indicator-${id}`}>
             <div className={folderIndicatorStyle} />
-          </Flipped>
+          </ViewTransition>
         </div>
         {(settings?.contextMenus === "contextMenuOptionBoth" ||
           settings?.contextMenus === "contextMenuOptionDisplayed") && (
-          <Flipped flipId={`folder-context-menu-${id}`}>
+          <ViewTransition name={`folder-context-menu-${id}`}>
             <div>
               <FloatingMenuButton dragId={id} className={folderActionsStyle}>
                 <TiThMenu />
               </FloatingMenuButton>
             </div>
-          </Flipped>
+          </ViewTransition>
         )}
       </header>
-      <Flipped flipId={`background-${id}`}>
+      <ViewTransition name={`background-${id}`}>
         <div className={folderContentStyle} />
-      </Flipped>
-      <Flipped flipId={`contents-${id}`}>
+      </ViewTransition>
+      <ViewTransition name={`contents-${id}`}>
         <div className={folderContentWrapperStyle}>
-          <Flipped inverseFlipId={`contents-${id}`}>
-            <section className={bookmarksStyle} data-grid-container>
-              {children}
-            </section>
-          </Flipped>
+          <section className={bookmarksStyle} data-grid-container>
+            {isOpen ? children : null}
+          </section>
         </div>
-      </Flipped>
+      </ViewTransition>
     </div>
   );
 };

@@ -4,13 +4,16 @@ Bugs:
   ✔ Context menu items missing for bookmarks @done(25-03-03 17:49)
   ☐ Remove orphaned native right click code
   ☐ Peeking not working
-  ☐ Unable to just drop back onto existing space
+  ☐ Unable to just drop back onto previous space
   ✔ Unable to paste folder copied from bookmarks bar @done(25-04-05 18:51)
   ✔ Animation lag on height toggle. Need to disable transition when not actively hiding. @done(25-03-22 13:50)
   ☐ Unable to paste folder from homebooks to bookmarks bar
   ☐ Tags lost when cutting and pasting
+  ☐ Settings menu not loading current option values properly on load
+  ☐ ctrl+click on mac allows multiple context menu popups to display
+
 Core Features:
-  ☐ Global Search
+  ☐ Global Search: https://github.com/farzher/fuzzysort
   ✔ Settings Panel @done(25-03-16 15:19)
   ✔ Select Root Folder @done(25-03-16 15:20)
   ✔ Open entire folder into window @done(25-04-05 18:50)
@@ -27,10 +30,12 @@ Core Features:
   ☐ Help section with tips & short video clips
   ☐ Release Notes
   ☐ Open folder in folder select if child folder is selected
+  ☐ Search in folder select
   ☐ Catch and display any errors
   ☐ Window group context menus
   ☐ Tab context menus incomplete
   ☐ Make context menus aware of current clipboard items / number of tabs being opened and display the count
+
 Nice To Have:
   ☐ Cross Browser Sync (xBrowserSync? floccus!?)
   ☐ Multi Browser Support

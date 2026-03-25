@@ -215,6 +215,8 @@ export const DragProvider: FC<
       const { id, target } = getEventData(event);
       if (!id || !target || !dragState.position) return;
 
+      // TODO: Handle file drop for Toby Import
+
       processDataTransfer(event, dragState.position);
       event.preventDefault();
     },

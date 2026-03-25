@@ -29,12 +29,20 @@ export const tobySchema = object({
 
 export const useTobyImport = () => {
   const [settings] = useSettingsStorage();
-  return useCallback(
+  console.log("settings", settings?.rootFolder);
+  const parseToby = useCallback(
     async (tobyExport: object) => {
       if (!settings?.rootFolder) throw new Error("Root folder not selected.");
+      return await tobySchema.validate(tobyExport);
+    },
+    [settings?.rootFolder]
+  );
+  const importToby = useCallback(
+    async (
+      imports: Awaited<ReturnType<typeof parseToby>>,
+    ) => {
+      if (!settings?.rootFolder) throw new Error("Root folder not selected.");
 
-      const imports = await tobySchema.validate(tobyExport);
-      console.log(imports);
       for (const list of imports.lists ?? []) {
         const folder = await browser.bookmarks.create({
           title: list.title,
@@ -53,4 +61,5 @@ export const useTobyImport = () => {
     },
     [settings?.rootFolder]
   );
+  return { parseToby, importToby };
 };

@@ -1,6 +1,7 @@
 import {
   FC,
   PropsWithChildren,
+  startTransition,
   useCallback,
   useEffect,
   useMemo,
@@ -29,7 +30,7 @@ export const BookmarkProvider: FC<PropsWithChildren> = (props) => {
     const updateBookmarks = async () => {
       if (!settings?.rootFolder) return;
       const tree = await browser.bookmarks.getSubTree(settings.rootFolder);
-      setBookmarks(tree[0].children);
+      startTransition(() => setBookmarks(tree[0].children));
     };
     updateBookmarks();
 
@@ -51,7 +52,7 @@ export const BookmarkProvider: FC<PropsWithChildren> = (props) => {
       const stored = (await browser.storage.sync.get("expanded")) as {
         expanded: string[];
       };
-      setExpanded(stored.expanded ?? []);
+      startTransition(() => setExpanded(stored.expanded ?? []));
     };
     updateStorage();
 

@@ -13,19 +13,23 @@ export const headerStyle = style({
   padding: "0 1rem",
   minHeight: "3rem",
   lineHeight: "3rem",
-  background: `repeating-linear-gradient( 45deg, ${globalTheme.colors.background.level1}, ${globalTheme.colors.background.level1} 5px, rgba(0,0,0,0) 5px, rgba(0,0,0,0) 10px )`,
+  // background: `repeating-linear-gradient( 45deg, ${globalTheme.colors.background.level1}, ${globalTheme.colors.background.level1} 5px, rgba(0,0,0,0) 5px, rgba(0,0,0,0) 10px )`,
+  background: `color-mix(in srgb, ${globalTheme.colors.background.level1} 50%, transparent)`,
   transform: "rotate(90deg) translateY(-3rem)",
   transformOrigin: "0 0",
   position: "fixed",
   top: 0,
   left: 0,
-  gap: ".1rem",
+  gap: "1rem",
   boxSizing: "border-box",
+  overflow: "hidden",
+  whiteSpace: "nowrap",
 });
 
 export const headerIconStyle = style({
   width: "1.4rem",
   height: "auto",
+  marginRight: ".5rem",
   transform: "rotate(-90deg) translateX(1px)",
 });
 

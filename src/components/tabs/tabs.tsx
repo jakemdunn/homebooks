@@ -1,6 +1,13 @@
-import { FC, useCallback, useEffect, useMemo, useState } from "react";
+import {
+  FC,
+  startTransition,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+  ViewTransition,
+} from "react";
 import browser from "webextension-polyfill";
-import { Flipper } from "react-flip-toolkit";
 import {
   tabsActionsStyle,
   tabsContentStyle,
@@ -22,14 +29,6 @@ export const TabsProvider: FC = () => {
   >();
 
   const [closedTabs, setClosedTabs] = useState<Set<string>>(new Set());
-  const flipKey = useMemo(
-    () =>
-      [
-        (tabs?.map((window) => window.windowId) ?? []).join(","),
-        [...closedTabs].join(","),
-      ].join("-"),
-    [closedTabs, tabs]
-  );
 
   useEffect(() => {
     type TabEvents = keyof Pick<
@@ -72,11 +71,13 @@ export const TabsProvider: FC = () => {
               [windowId]: [...(byWindow[windowId] ?? []), tab],
             };
           }, {});
-        setTabs(
-          Object.entries(tabsByWindow).map(([windowId, tabs]) => ({
-            windowId,
-            tabs,
-          }))
+        startTransition(() =>
+          setTabs(
+            Object.entries(tabsByWindow).map(([windowId, tabs]) => ({
+              windowId,
+              tabs,
+            }))
+          )
         );
       };
     updateTabs()();
@@ -102,15 +103,17 @@ export const TabsProvider: FC = () => {
 
   const onFolderClick = useCallback(
     (windowId: string) => () => {
-      setClosedTabs((prev) => {
-        const updated = new Set([...prev]);
-        if (prev.has(windowId)) {
-          updated.delete(windowId);
-        } else {
-          updated.add(windowId);
-        }
-        return updated;
-      });
+      startTransition(() =>
+        setClosedTabs((prev) => {
+          const updated = new Set([...prev]);
+          if (prev.has(windowId)) {
+            updated.delete(windowId);
+          } else {
+            updated.add(windowId);
+          }
+          return updated;
+        })
+      );
     },
     []
   );
@@ -121,7 +124,7 @@ export const TabsProvider: FC = () => {
   return (
     <div className={tabsWrapperStyle}>
       <header className={tabsActionsStyle}>
-        {tabs?.length} Window{(tabs?.length ?? 0) > 1 ? "s " : " "}
+        {tabs?.length} Window{(tabs?.length ?? 0) !== 1 ? "s " : " "}
         <PiAppWindowFill />
       </header>
       <div
@@ -129,7 +132,7 @@ export const TabsProvider: FC = () => {
         style={assignInlineVars({ [tabsHeight]: `${topOffset}px` })}
         ref={ref}
       >
-        <Flipper flipKey={flipKey} spring="noWobble">
+        <ViewTransition>
           <div data-grid-container>
             {tabs?.map((window, index) => (
               <WindowComponent
@@ -142,7 +145,7 @@ export const TabsProvider: FC = () => {
               />
             ))}
           </div>
-        </Flipper>
+        </ViewTransition>
       </div>
     </div>
   );

@@ -94,5 +94,9 @@
   "pasteFolder": {
     "message": "Paste",
     "description": "Create the clipboard contents into this folder."
+  },
+  "importFromToby": {
+    "message": "Import from Toby",
+    "description": "Import bookmarks from Toby."
   }
 }

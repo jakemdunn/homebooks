@@ -1,4 +1,10 @@
-import { FC, PropsWithChildren, useEffect } from "react";
+import {
+  FC,
+  PropsWithChildren,
+  useCallback,
+  useEffect,
+  useMemo,
+} from "react";
 import { RiSettings4Fill } from "react-icons/ri";
 import HomeBooksIcon from "/icon/homebooks.svg?url";
 import {
@@ -14,27 +20,29 @@ import {
 import { useConditionalClassNames } from "../../util/useConditionalClassNames";
 import { Field, Form, Formik } from "formik";
 import { useI18n } from "../../util/i18n";
+import { FileInput } from "../form/fileInput/fileInput";
 import { FolderSelect } from "../form/folder/folderSelect";
 import {
-  ContextMenuOption,
+  CONTEXT_MENU_OPTIONS,
   SettingsData,
+  areSettingsEqual,
+  normalizeSettings,
   useSettingsStorage,
 } from "../../util/storage.types";
 import { useStorage } from "../../util/useStorage";
 import { SETTINGS_PANEL_VISIBLE } from "./settings.util";
-
-const CONTEXT_MENU_OPTIONS: ContextMenuOption[] = [
-  "contextMenuOptionBoth",
-  "contextMenuOptionDisplayed",
-  "contextMenuOptionRightClick",
-];
+import { useTobyImport } from "../../util/toby.import";
 
 const SettingsUpdate: FC<{ values: SettingsData }> = ({ values }) => {
   const [settings, setSettingsData] = useSettingsStorage();
+  const normalized = useMemo(
+    () => normalizeSettings(values),
+    [values]
+  );
   useEffect(() => {
-    if (JSON.stringify(values) === JSON.stringify(settings)) return;
-    setSettingsData(values);
-  }, [setSettingsData, settings, values]);
+    if (areSettingsEqual(normalized, settings)) return;
+    setSettingsData(normalized);
+  }, [normalized, settings, setSettingsData]);
   return null;
 };
 
@@ -42,6 +50,24 @@ export const Settings: FC<PropsWithChildren> = ({ children }) => {
   const [{ [SETTINGS_PANEL_VISIBLE]: open }, setOpen] = useStorage<{
     [SETTINGS_PANEL_VISIBLE]: boolean;
   }>(SETTINGS_PANEL_VISIBLE, "session");
+  const tobyImport = useTobyImport();
+  const selectFile = useCallback(
+    async (
+      event: React.ChangeEvent<HTMLInputElement>,
+    ) => {
+      const file = event.target.files?.[0];
+      if (!file) return;
+      try {
+        const imports = await tobyImport.parseToby(
+          JSON.parse(await file.text())
+        );
+        await tobyImport.importToby(imports);
+      } catch (error) {
+        console.error(error);
+      }
+    },
+    [tobyImport]
+  );
   const classNames = useConditionalClassNames(
     {
       open: () => !!open,
@@ -79,7 +105,7 @@ export const Settings: FC<PropsWithChildren> = ({ children }) => {
     <>
       <header>
         <h1 className={headerStyle}>
-          <img className={headerIconStyle} src={HomeBooksIcon} /> HomeBooks
+          <span><img className={headerIconStyle} src={HomeBooksIcon} />HomeBooks</span>
           <button
             type="button"
             className={settingsButtonStyle}
@@ -93,10 +119,11 @@ export const Settings: FC<PropsWithChildren> = ({ children }) => {
       <section className={classNames} data-settings inert={!open}>
         <div className={settingsContentStyle}>
           <h2 className={settingsHeaderStyle}>Settings</h2>
-          {settingsData && (
+          {Object.keys(settingsData).length > 0 && (
             <Formik<SettingsData>
               initialValues={settingsData}
-              onSubmit={setSettingsData}
+              enableReinitialize
+              onSubmit={(values) => setSettingsData(normalizeSettings(values))}
             >
               {({ values }) => (
                 <Form className={settingsFormStyle}>
@@ -124,6 +151,12 @@ export const Settings: FC<PropsWithChildren> = ({ children }) => {
                     </label>
                     <FolderSelect id="rootFolder" name="rootFolder" />
                   </div>
+                  <FileInput
+                    onChange={selectFile}
+                    accept="application/json,.json"
+                  >
+                    {i18n("importFromToby")}
+                  </FileInput>
                 </Form>
               )}
             </Formik>
