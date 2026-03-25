@@ -1,5 +1,6 @@
 import { globalStyle, style } from "@vanilla-extract/css";
 import { fonts, globalTheme } from "../../pages/global.css";
+import { SETTINGS_PANEL_VISIBLE } from "./settings.util";
 
 export const headerStyle = style({
   ...fonts.rubik.styles,
@@ -24,6 +25,12 @@ export const headerStyle = style({
   boxSizing: "border-box",
   overflow: "hidden",
   whiteSpace: "nowrap",
+  viewTransitionName: "settings-header",
+  viewTransitionClass: "settings"
+});
+
+globalStyle('::view-transition-group(settings-header)', {
+  zIndex: 100,
 });
 
 export const headerIconStyle = style({
@@ -69,6 +76,8 @@ export const settingsPanelStyle = style({
   backdropFilter: "blur(5px)",
   perspective: 800,
   perspectiveOrigin: "100% 50%",
+  viewTransitionName: "settings-panel",
+  viewTransitionClass: "settings",
   selectors: {
     "&.open": {
       width: "20vw",
@@ -86,6 +95,16 @@ globalStyle(`${settingsPanelStyle}.open + *`, {
   opacity: 0.3,
   transform: "translateX(10rem)",
   pointerEvents: "none",
+});
+
+globalStyle(`html.${SETTINGS_PANEL_VISIBLE}::view-transition-group(*)`, {
+  opacity: 0.3,
+});
+globalStyle(`html.${SETTINGS_PANEL_VISIBLE}::view-transition-group(.settings)`, {
+  opacity: 1,
+});
+globalStyle(`::view-transition-group(.settings)`, {
+  zIndex: 500,
 });
 
 export const settingsContentStyle = style({

@@ -30,7 +30,9 @@ import {
   useSettingsStorage,
 } from "../../util/storage.types";
 import { useStorage } from "../../util/useStorage";
-import { SETTINGS_PANEL_VISIBLE } from "./settings.util";
+import {
+  SETTINGS_PANEL_VISIBLE,
+} from "./settings.util";
 import { useTobyImport } from "../../util/toby.import";
 
 const SettingsUpdate: FC<{ values: SettingsData }> = ({ values }) => {
@@ -74,6 +76,16 @@ export const Settings: FC<PropsWithChildren> = ({ children }) => {
     },
     settingsPanelStyle
   );
+  useEffect(() => {
+    document.documentElement.classList.toggle(SETTINGS_PANEL_VISIBLE, !!open);
+  }, [open]);
+
+  useEffect(() => {
+    return () => {
+      document.documentElement.classList.remove(SETTINGS_PANEL_VISIBLE);
+    };
+  }, []);
+
   useEffect(() => {
     if (!open) return;
 

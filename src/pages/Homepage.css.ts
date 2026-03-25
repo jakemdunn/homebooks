@@ -38,6 +38,10 @@ export const actionsStyle = style({
   justifyContent: "flex-end",
   gap: 2,
   alignItems: "center",
+  viewTransitionName: "bookmark-actions",
+});
+globalStyle("::view-transition-group(bookmark-actions)", {
+  zIndex: 100,
 });
 
 export const actionButtonStyle = style({
