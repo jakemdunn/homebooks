@@ -166,6 +166,7 @@ export const Settings: FC<PropsWithChildren> = ({ children }) => {
                   <FileInput
                     onChange={selectFile}
                     accept="application/json,.json"
+                    progress={tobyImport.progress}
                   >
                     {i18n("importFromToby")}
                   </FileInput>

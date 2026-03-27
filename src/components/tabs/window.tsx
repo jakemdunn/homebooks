@@ -39,7 +39,7 @@ export const WindowComponent: FC<WindowProps> = ({
         type: "tab",
         source: tab,
       })),
-    [tabs]
+    [tabs],
   );
   const onDragStart = useSetDataTransfer(source, dragId);
 
@@ -56,6 +56,7 @@ export const WindowComponent: FC<WindowProps> = ({
       id={`window-${windowId}`}
       title={`Window ${index + 1}`}
       detail={`${tabs.length} Tabs`}
+      type="window"
     >
       {tabs.map((tab) => (
         <Tab value={tab} key={tab.id ?? `${index}-${tab.index}`} />

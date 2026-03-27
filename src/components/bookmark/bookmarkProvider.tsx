@@ -12,6 +12,17 @@ import { BookmarkState, BookmarkContext } from "./bookmarkContext";
 import { useDragContext } from "../drag/dragContext";
 import { useSettingsStorage } from "../../util/storage.types";
 
+function collectFolderIds(
+  nodes: browser.Bookmarks.BookmarkTreeNode[] | undefined,
+): string[] {
+  if (!nodes?.length) return [];
+  return nodes.flatMap((node) => {
+    const folderId = node.type === "folder" ? [node.id] : [];
+    const nested = collectFolderIds(node.children);
+    return [...folderId, ...nested];
+  });
+}
+
 export const BookmarkProvider: FC<PropsWithChildren> = (props) => {
   const [storeExpanded, setExpanded] = useState<string[]>([]);
   const dragState = useDragContext();
@@ -19,18 +30,21 @@ export const BookmarkProvider: FC<PropsWithChildren> = (props) => {
     () => [
       ...new Set<string>([...storeExpanded, ...dragState.peekedIds]).values(),
     ],
-    [dragState.peekedIds, storeExpanded]
+    [dragState.peekedIds, storeExpanded],
   );
   const [bookmarks, setBookmarks] =
     useState<browser.Bookmarks.BookmarkTreeNode[]>();
-  const allFolderIds = bookmarks?.map((node) => node.id);
+  const allFolderIds = useMemo(
+    () => (bookmarks ? collectFolderIds(bookmarks) : undefined),
+    [bookmarks],
+  );
   const [settings] = useSettingsStorage();
 
   useEffect(() => {
     const updateBookmarks = async () => {
       if (!settings?.rootFolder) return;
       const tree = await browser.bookmarks.getSubTree(settings.rootFolder);
-      startTransition(() => setBookmarks(tree[0].children));
+      setBookmarks(tree[0].children);
     };
     updateBookmarks();
 
@@ -71,7 +85,7 @@ export const BookmarkProvider: FC<PropsWithChildren> = (props) => {
           : [...expanded, folderId],
       });
     },
-    [expanded]
+    [expanded],
   );
 
   const expandAll = useCallback(async () => {
@@ -93,7 +107,7 @@ export const BookmarkProvider: FC<PropsWithChildren> = (props) => {
       expanded,
       toggle,
     }),
-    [bookmarks, expanded, toggle, expandAll, collapseAll]
+    [bookmarks, expanded, toggle, expandAll, collapseAll],
   );
 
   return !!settings && <BookmarkContext.Provider value={value} {...props} />;

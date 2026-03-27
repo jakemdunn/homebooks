@@ -10,7 +10,7 @@ export const tabsWrapperStyle = style({
   },
   paddingBottom: "3rem",
   boxSizing: "border-box",
-  flex: "0 0 max(35ch, 30vw)",
+  flex: "0 0 35ch",
 });
 
 export const tabsContentStyle = style({

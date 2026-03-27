@@ -47,7 +47,7 @@ export const Item: FC<PropsWithChildren<ItemProps>> = ({
     {
       dragging: () => dragState.sourceIds.has(id),
     },
-    itemWrapperStyle
+    itemWrapperStyle,
   );
   const content = useMemo(
     () => (
@@ -64,7 +64,7 @@ export const Item: FC<PropsWithChildren<ItemProps>> = ({
         <div className={itemDetailsStyle}>{details}</div>
       </>
     ),
-    [children, details, favicon]
+    [children, details, favicon],
   );
 
   return (

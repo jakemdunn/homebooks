@@ -20,11 +20,24 @@ export const fileInputFace = style({
   width: "100%",
   boxSizing: "border-box",
   textAlign: "center",
+  overflow: "hidden",
+  position: "relative",
   selectors: {
     [`${fileInputWrapper}:hover &`]: {
       background: `color-mix(in srgb, ${globalTheme.colors.background.button} 60%, transparent)`,
     },
   },
+});
+
+export const fileInputProgress = style({
+  position: "absolute",
+  bottom: 0,
+  left: 0,
+  width: "100%",
+  top: 0,
+  zIndex: -1,
+  background: `color-mix(in srgb, ${globalTheme.colors.background.button} 60%, transparent)`,
+  transition: "width 0.05s ease-in-out",
 });
 
 export const fileInputNative = style({

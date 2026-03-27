@@ -1,6 +1,34 @@
-import { createVar, style } from "@vanilla-extract/css";
+import {
+  createVar,
+  globalKeyframes,
+  globalStyle,
+  style,
+} from "@vanilla-extract/css";
 import { globalTheme } from "../../pages/global.css";
 
+globalStyle("::view-transition-group(.folder-appear)", {
+  animation: "folder-appear 0.2s both ease-in-out",
+});
+globalStyle("::view-transition-group(.folder-disappear)", {
+  animation: "folder-disappear 0.2s both ease-in-out",
+});
+
+globalKeyframes("folder-appear", {
+  from: {
+    clipPath: "inset(0 0 100% 0)",
+  },
+  to: {
+    clipPath: "inset(0 0 0 0)",
+  },
+});
+globalKeyframes("folder-disappear", {
+  from: {
+    clipPath: "inset(0 0 0 0)",
+  },
+  to: {
+    clipPath: "inset(0 0 100% 0)",
+  },
+});
 const folderHeadingSize = createVar();
 export const folderStyle = style({
   vars: {
@@ -113,21 +141,9 @@ export const folderSubHeadingStyle = style({
   opacity: 0.6,
   fontWeight: 400,
 });
-
 export const folderIndicatorStyle = style({
-  ":after": {
-    content: " ",
-    borderBottom: "4px solid",
-    borderRight: "4px solid",
-    width: "0.5rem",
-    height: "0.5rem",
-    display: "block",
-    transform: "translateY(0.15rem) rotate(-135deg)",
-    transition: "all 0.2s ease-in-out",
-  },
-  selectors: {
-    ".expanded &:after": {
-      transform: "translateY(-0.15rem) rotate(45deg)",
-    },
-  },
+  fontSize: "1.2rem",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
 });

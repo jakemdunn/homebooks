@@ -5,7 +5,6 @@ import {
   useEffect,
   useMemo,
   useState,
-  ViewTransition,
 } from "react";
 import browser from "webextension-polyfill";
 import {
@@ -62,7 +61,7 @@ export const TabsProvider: FC = () => {
         const tabsByWindow = tabs
           .filter(
             (tab) =>
-              !tab.url?.includes(extensionURL) && !tab.url?.match(/^about:/)
+              !tab.url?.includes(extensionURL) && !tab.url?.match(/^about:/),
           )
           .reduce<Record<number, browser.Tabs.Tab[]>>((byWindow, tab) => {
             const windowId = tab.windowId ?? 0;
@@ -71,13 +70,11 @@ export const TabsProvider: FC = () => {
               [windowId]: [...(byWindow[windowId] ?? []), tab],
             };
           }, {});
-        startTransition(() =>
-          setTabs(
-            Object.entries(tabsByWindow).map(([windowId, tabs]) => ({
-              windowId,
-              tabs,
-            }))
-          )
+        setTabs(
+          Object.entries(tabsByWindow).map(([windowId, tabs]) => ({
+            windowId,
+            tabs,
+          })),
         );
       };
     updateTabs()();
@@ -91,12 +88,12 @@ export const TabsProvider: FC = () => {
           [event]: listener,
         };
       },
-      {} as Record<TabEvents, () => void>
+      {} as Record<TabEvents, () => void>,
     );
 
     return () => {
       tabEvents.map((event) =>
-        browser.tabs[event].removeListener(listeners[event])
+        browser.tabs[event].removeListener(listeners[event]),
       );
     };
   }, []);
@@ -112,10 +109,10 @@ export const TabsProvider: FC = () => {
             updated.add(windowId);
           }
           return updated;
-        })
+        }),
       );
     },
-    []
+    [],
   );
 
   const { height, ref } = useResizeDetector();
@@ -132,20 +129,18 @@ export const TabsProvider: FC = () => {
         style={assignInlineVars({ [tabsHeight]: `${topOffset}px` })}
         ref={ref}
       >
-        <ViewTransition>
-          <div data-grid-container>
-            {tabs?.map((window, index) => (
-              <WindowComponent
-                {...window}
-                isOpen={!closedTabs.has(window.windowId)}
-                onClick={onFolderClick(window.windowId)}
-                index={index}
-                id={`window-${window.windowId}`}
-                key={window.windowId}
-              />
-            ))}
-          </div>
-        </ViewTransition>
+        <div data-grid-container>
+          {tabs?.map((window, index) => (
+            <WindowComponent
+              {...window}
+              isOpen={!closedTabs.has(window.windowId)}
+              onClick={onFolderClick(window.windowId)}
+              index={index}
+              id={`window-${window.windowId}`}
+              key={window.windowId}
+            />
+          ))}
+        </div>
       </div>
     </div>
   );

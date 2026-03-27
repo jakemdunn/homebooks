@@ -30,13 +30,13 @@ export const actionsStyle = style({
   top: 0,
   left: 0,
   height: actionsHeight,
-  padding: "0 1rem",
+  padding: "0",
   background: `color-mix(in srgb, ${globalTheme.colors.background.base} 20%, transparent)`,
   backdropFilter: "blur(5px)",
   zIndex: 100,
   display: "flex",
   justifyContent: "flex-end",
-  gap: 2,
+  gap: "1rem",
   alignItems: "center",
   viewTransitionName: "bookmark-actions",
 });
@@ -46,27 +46,18 @@ globalStyle("::view-transition-group(bookmark-actions)", {
 
 export const actionButtonStyle = style({
   fontWeight: fonts.nunito.weights[700],
-  background: globalTheme.colors.background.button,
-  color: globalTheme.colors.text.inverse,
+  background: "none",
+  color: globalTheme.colors.text.action,
   border: "none",
-  padding: "0.25rem 0.5rem",
-  borderRadius: "4px 0 0 4px",
+  padding: "0",
   zIndex: 100,
   cursor: "pointer",
   transition: "all 0.2s ease-in-out",
+  display: "flex",
+  alignItems: "center",
+  gap: "0.15rem",
   ":hover": {
-    background: globalTheme.colors.text.header,
     color: globalTheme.colors.text.highContrast,
-  },
-  ":last-of-type": {
-    borderTopRightRadius: 4,
-    borderBottomRightRadius: 4,
-  },
-  selectors: {
-    [`&+&`]: {
-      borderTopLeftRadius: 0,
-      borderBottomLeftRadius: 0,
-    },
   },
 });
 

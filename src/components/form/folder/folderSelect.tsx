@@ -27,6 +27,25 @@ interface FolderSelectProps {
   field: FieldInputProps<unknown>;
   toggleExpanded: (id: string) => void;
 }
+
+/** IDs of folders that must be expanded for `targetId` to be visible (not including `targetId`). */
+function ancestorFolderIdsToShowSelection(
+  options: FolderOption[],
+  targetId: string,
+  prefix: string[] = []
+): string[] | null {
+  for (const opt of options) {
+    if (opt.node.id === targetId) return prefix;
+    if (opt.children?.length) {
+      const found = ancestorFolderIdsToShowSelection(opt.children, targetId, [
+        ...prefix,
+        opt.node.id,
+      ]);
+      if (found !== null) return found;
+    }
+  }
+  return null;
+}
 const FolderSelectOption: FC<FolderOption & FolderSelectProps> = ({
   children,
   depth,
@@ -114,6 +133,31 @@ const FolderSelectOptions: FC<
   ));
 };
 
+const AutoExpandToSelection: FC<{
+  options: FolderOption[];
+  selectedId: unknown;
+  setExpanded: React.Dispatch<React.SetStateAction<string[]>>;
+}> = ({ options, selectedId, setExpanded }) => {
+  useEffect(() => {
+    if (typeof selectedId !== "string" || !selectedId || options.length === 0) {
+      return;
+    }
+    const path = ancestorFolderIdsToShowSelection(options, selectedId);
+    if (path === null || path.length === 0) return;
+
+    setExpanded((prev) => {
+      const next = new Set(prev);
+      for (const id of path) next.add(id);
+      const arr = [...next];
+      return arr.length === prev.length && path.every((id) => prev.includes(id))
+        ? prev
+        : arr;
+    });
+  }, [options, selectedId, setExpanded]);
+
+  return null;
+};
+
 export const FolderSelect: FC<FieldAttributes<unknown>> = (props) => {
   const [options, setOptions] = useState<FolderOption[]>([]);
   const [expanded, setExpanded] = useState<string[]>([]);
@@ -177,8 +221,13 @@ export const FolderSelect: FC<FieldAttributes<unknown>> = (props) => {
   return (
     <div className={optionsStyle} data-grid-container>
       <Field {...props}>
-        {({ field }: FieldProps<unknown>) => {
-          return (
+        {({ field }: FieldProps<unknown>) => (
+          <>
+            <AutoExpandToSelection
+              options={options}
+              selectedId={field.value}
+              setExpanded={setExpanded}
+            />
             <FolderSelectOptions
               expanded={expanded}
               field={field}
@@ -187,8 +236,8 @@ export const FolderSelect: FC<FieldAttributes<unknown>> = (props) => {
             >
               {options}
             </FolderSelectOptions>
-          );
-        }}
+          </>
+        )}
       </Field>
     </div>
   );

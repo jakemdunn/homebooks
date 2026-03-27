@@ -26,7 +26,7 @@ export const settingsSchema = yup.object({
   contextMenus: yup
     .mixed<ContextMenuOption>()
     .oneOf(CONTEXT_MENU_OPTIONS)
-    .default("contextMenuOptionBoth"),
+    .default("contextMenuOptionRightClick"),
 });
 
 export type SettingsData = yup.InferType<typeof settingsSchema>;
@@ -38,9 +38,7 @@ export function normalizeSettings(data: object): SettingsData {
 export function areSettingsEqual(a: object, b: object): boolean {
   const na = normalizeSettings(a);
   const nb = normalizeSettings(b);
-  return (
-    na.rootFolder === nb.rootFolder && na.contextMenus === nb.contextMenus
-  );
+  return na.rootFolder === nb.rootFolder && na.contextMenus === nb.contextMenus;
 }
 
 const DEFAULT_SETTINGS = normalizeSettings({});
