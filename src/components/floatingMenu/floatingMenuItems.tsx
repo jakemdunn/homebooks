@@ -25,7 +25,7 @@ export const FloatingMenuItems: FC<FloatingMenuItemsProps> = ({ dragId }) => {
       folder: FolderMenu,
       window: BookmarkMenu, // TODO: WindowMenu
     }),
-    []
+    [],
   );
   const items = menusByType[type];
   const [menuActionProps, setMenuActionProps] = useState<MenuActionProps>([{}]);
@@ -41,32 +41,33 @@ export const FloatingMenuItems: FC<FloatingMenuItemsProps> = ({ dragId }) => {
     (item: NormalMenuItem) => {
       item.action(...menuActionProps);
     },
-    [menuActionProps]
+    [menuActionProps],
   );
-  const [extensionStorage] = useExtensionStorage();
+  const [menuVisibility] = useExtensionStorage();
   const visibleItems = useMemo(
-    () =>
-      items.filter(
-        (item) => extensionStorage?.menuVisibility?.[item.id] !== false
-      ),
-    [extensionStorage?.menuVisibility, items]
+    () => items.filter((item) => menuVisibility?.[item.id] !== false),
+    [menuVisibility, items],
   );
 
-  const [, setOpen] = useStorage<{
-    [SETTINGS_PANEL_VISIBLE]: boolean;
-  }>(SETTINGS_PANEL_VISIBLE, "session");
+  const [, setOpen] = useStorage<boolean>(
+    SETTINGS_PANEL_VISIBLE,
+    false,
+    "session",
+  );
   const { closeMenu } = useFloatingMenuContext();
 
-  const [{ contextMenuNoteDismissed }, setNoteDismissed] = useStorage<{
-    contextMenuNoteDismissed: boolean;
-  }>("contextMenuNoteDismissed", "sync");
+  const [contextMenuNoteDismissed, setNoteDismissed] = useStorage<boolean>(
+    "contextMenuNoteDismissed",
+    false,
+    "sync",
+  );
 
   const openSettings = () => {
-    setOpen({ [SETTINGS_PANEL_VISIBLE]: true });
+    setOpen(true);
     closeMenu();
   };
   const dismissNote = () => {
-    setNoteDismissed({ contextMenuNoteDismissed: true });
+    setNoteDismissed(true);
   };
 
   return (
@@ -80,7 +81,7 @@ export const FloatingMenuItems: FC<FloatingMenuItemsProps> = ({ dragId }) => {
           />
         ) : (
           <FloatingMenuSeparator key={item.id} />
-        )
+        ),
       )}
       {!contextMenuNoteDismissed && (
         <div className={menuNote}>

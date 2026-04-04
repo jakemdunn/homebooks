@@ -1,54 +1,55 @@
-import { useEffect, useMemo, useState } from "react";
+import {
+  startTransition,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import { Storage, storage } from "webextension-polyfill";
+import deepEqual from "fast-deep-equal";
 
 type StorageTypes = Extract<keyof typeof storage, "local" | "sync" | "session">;
-// type KeyType = string | string[] | null | undefined;
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type StorageResponse = Record<string, any>;
-type StorageSet = (typeof storage)[StorageTypes]["set"];
+type StorageSet<T> = (value: T) => Promise<void>;
 
-export function useStorage<T extends object>(
-  key: T,
-  type?: StorageTypes
-): [T, StorageSet];
-export function useStorage<T extends StorageResponse, Keys = (keyof T)[]>(
-  key?: keyof T | Keys | null,
-  type?: StorageTypes
-): [T, StorageSet];
-export function useStorage<T extends StorageResponse, Keys = (keyof T)[]>(
-  key: T | keyof T | Keys,
-  type: StorageTypes = "local"
-): [T, StorageSet] {
-  const [data, setData] = useState<T>();
-  const keys = useMemo<Keys | null>(() => {
-    if (key === null) return null;
-    if (typeof key === "string") return [key] as Keys;
-    if (Array.isArray(key)) return key as Keys;
-    if (typeof key === "object") return Object.keys(key) as Keys;
-    return null;
-  }, [key]);
-
+export function useStorage<T>(
+  key: string,
+  defaultValue: T,
+  type: StorageTypes = "local",
+): [T, StorageSet<T>] {
+  const dataRef = useRef<T>(defaultValue);
+  const [data, setData] = useState<T>(defaultValue);
+  const set = useCallback(
+    (value: T) => {
+      dataRef.current = value;
+      setData(value);
+      return storage[type].set({ [key]: value });
+    },
+    [key, type],
+  );
   useEffect(() => {
     const getData = async (
-      changes?: Storage.StorageAreaSyncOnChangedChangesType
+      changes?: Storage.StorageAreaSyncOnChangedChangesType,
     ) => {
-      if (
-        changes &&
-        Array.isArray(keys) &&
-        !Object.keys(changes).some((change) => keys?.includes(change))
-      ) {
+      if (changes && changes[key] === undefined) {
         return;
       }
-      setData(
-        (await storage[type].get(
-          key as Parameters<(typeof storage)[typeof type]["get"]>[0]
-        )) as T
-      );
+      const updated =
+        ((
+          await storage[type].get(
+            key as Parameters<(typeof storage)[typeof type]["get"]>[0],
+          )
+        )[key] as T) ?? defaultValue;
+      if (!deepEqual(updated, dataRef.current)) {
+        dataRef.current = updated;
+        startTransition(() => {
+          setData(updated);
+        });
+      }
     };
     storage[type].onChanged.addListener(getData);
     getData();
     return () => storage[type].onChanged.removeListener(getData);
-  }, [key, keys, type]);
+  }, [key, type, defaultValue]);
 
-  return [data ?? ({} as T), storage[type].set];
+  return [data, set];
 }

@@ -16,10 +16,9 @@ export const HeightToggle: FC<
       hidden,
       transitioning,
     },
-    wrapperStyle
+    wrapperStyle,
   );
   const onTransitionEnd = useCallback(() => {
-    console.log("transition end?");
     setTransitioning(false);
   }, []);
 

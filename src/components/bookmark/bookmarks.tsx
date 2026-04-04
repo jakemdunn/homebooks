@@ -14,7 +14,8 @@ import { FileInput } from "../form/fileInput/fileInput";
 import { useTobyImport } from "../../util/toby.import";
 
 export const Bookmarks: FC = () => {
-  const { bookmarks } = useBookmarkContext();
+  const { bookmarks, searchQuery, displayBookmarks } = useBookmarkContext();
+
   const importToby = useTobyImport();
   const selectFile = useCallback(
     async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -43,8 +44,13 @@ export const Bookmarks: FC = () => {
           </FileInput>
         </div>
       )}
+      {!!bookmarks?.length &&
+        !displayBookmarks?.length &&
+        !!searchQuery?.trim() && (
+          <p style={{ padding: "0 0 1rem" }}>No bookmarks match your search.</p>
+        )}
       <section className={bookmarksStyle} data-grid-container>
-        {bookmarks?.map((bookmark) => (
+        {displayBookmarks?.map((bookmark) => (
           <Bookmark key={bookmark.id} node={bookmark} />
         ))}
       </section>

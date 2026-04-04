@@ -58,6 +58,13 @@ export const TabsProvider: FC = () => {
           tabs = tabs.filter((tab) => tab.id !== props[0]);
         }
 
+        const currentWindowId = (
+          await browser.tabs.query({
+            active: true,
+            currentWindow: true,
+          })
+        )[0].windowId;
+
         const tabsByWindow = tabs
           .filter(
             (tab) =>
@@ -71,10 +78,17 @@ export const TabsProvider: FC = () => {
             };
           }, {});
         setTabs(
-          Object.entries(tabsByWindow).map(([windowId, tabs]) => ({
-            windowId,
-            tabs,
-          })),
+          Object.entries(tabsByWindow)
+            .map(([windowId, tabs]) => ({
+              windowId,
+              tabs,
+            }))
+            .sort((a, b) => {
+              if (!currentWindowId) return 0;
+              if (Number(a.windowId) === currentWindowId) return -1;
+              if (Number(b.windowId) === currentWindowId) return 1;
+              return 0;
+            }),
         );
       };
     updateTabs()();

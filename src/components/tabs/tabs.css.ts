@@ -1,6 +1,6 @@
 import { createVar, style } from "@vanilla-extract/css";
-import { actionsHeight } from "../../pages/Homepage.css";
 import { globalTheme } from "../../pages/global.css";
+import { actionsHeight } from "../bookmark/bookmarkActions.css";
 
 export const tabsHeight = createVar();
 

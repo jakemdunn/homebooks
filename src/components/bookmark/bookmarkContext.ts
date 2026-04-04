@@ -7,6 +7,10 @@ export interface BookmarkState {
   toggle: (folderId: string) => void;
   expandAll: () => void;
   collapseAll: () => void;
+  searchQuery: string;
+  setSearchQuery: (value: string) => void;
+  displayBookmarks?: browser.Bookmarks.BookmarkTreeNode[];
+  deferredSearchQuery: string;
 }
 
 export const BookmarkContext = createContext<BookmarkState>(

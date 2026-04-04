@@ -8,29 +8,28 @@ Bugs:
   ✔ Unable to paste folder copied from bookmarks bar @done(25-04-05 18:51)
   ✔ Animation lag on height toggle. Need to disable transition when not actively hiding. @done(25-03-22 13:50)
   ☐ Unable to paste folder from homebooks to bookmarks bar
-  ☐ Tags lost when cutting and pasting
-  ☐ Settings menu not loading current option values properly on load
+  ✘ Tags lost when cutting and pasting @cancelled(26-04-04 10:34) Not supported by Firefox
+  ✔ Settings menu not loading current option values properly on load @done(26-04-04 10:32)
   ☐ ctrl+click on mac allows multiple context menu popups to display
 
 Core Features:
-  ☐ Global Search: https://github.com/farzher/fuzzysort
+  ✔ Global Search: https://github.com/farzher/fuzzysort @done(26-04-04 10:31)
   ✔ Settings Panel @done(25-03-16 15:19)
   ✔ Select Root Folder @done(25-03-16 15:20)
   ✔ Open entire folder into window @done(25-04-05 18:50)
   ✔ Folder context menus @done(25-04-05 18:50)
-  ☐ Input/Form styling
+  ✔ Input/Form styling @done(26-04-04 10:11)
   ☐ Multi Select for copy/paste & drag/drop
   ☐ Edit Popups
   ☐ Create new folder
   ☐ Drag folders/bookmarks to windows column to open
-  ☐ Tags
+  ✘ Tags @cancelled(26-04-04 10:34) Not supported by Firefox
   ☐ Save full window to new folder
-  ☐ Import from Toby
+  ✔ Import from Toby @done(26-04-04 10:34)
   ☐ Confirm configuration as proper background script: https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/Background_scripts#convert_to_non-persistent
   ☐ Help section with tips & short video clips
   ☐ Release Notes
-  ☐ Open folder in folder select if child folder is selected
-  ☐ Search in folder select
+  ✔ Open folder in folder select if child folder is selected @done(26-04-04 10:31)
   ☐ Catch and display any errors
   ☐ Window group context menus
   ☐ Tab context menus incomplete
@@ -42,3 +41,4 @@ Nice To Have:
   ☐ Collapsible or adjustable sidebar
   ☐ "Next/TODO" feature using flags or separate folder?
   ☐ Mobile Support soon?? (Track https://bugzilla.mozilla.org/show_bug.cgi?id=1796596)
+  ☐ Search in folder select
