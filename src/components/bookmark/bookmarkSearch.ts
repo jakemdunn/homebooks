@@ -1,4 +1,5 @@
 import fuzzysort from "fuzzysort";
+import { useDeferredValue, useMemo } from "react";
 import browser from "webextension-polyfill";
 
 export interface BookmarkSearchTarget {
@@ -183,24 +184,24 @@ function folderIdsToExpandForStrongSearchMatches(
   return [...folderIds];
 }
 
-export function filterBookmarksByQuery(
+export function useFilterBookmarksByQuery(
   bookmarks: browser.Bookmarks.BookmarkTreeNode[] | undefined,
   query: string,
   targets: BookmarkSearchTarget[],
 ): BookmarkSearchFilterResult {
-  if (!bookmarks?.length) return [bookmarks, []];
-  const q = query.trim();
-  if (!q) return [bookmarks, []];
-
-  const results = fuzzysort.go(q, targets, { key: "searchText" });
-  const matchedIds = new Set(results.map((r) => r.obj.node.id));
-  const pruned = pruneBookmarkTreeByMatches(bookmarks, matchedIds);
-  const selfScoreById = scoresFromFuzzysortResults(results);
-  const bubbleById = fillBubbleScoresForForest(pruned, selfScoreById);
-  const displayBookmarks = sortForestByBubble(pruned, bubbleById);
-  const searchFolderIdsToExpand = folderIdsToExpandForStrongSearchMatches(
-    bookmarks,
-    results,
-  );
-  return [displayBookmarks, searchFolderIdsToExpand];
+  const deferredQuery = useDeferredValue(query.trim());
+  return useMemo(() => {
+    if (!bookmarks?.length || !deferredQuery) return [bookmarks, []];
+    const results = fuzzysort.go(deferredQuery, targets, { key: "searchText" });
+    const matchedIds = new Set(results.map((r) => r.obj.node.id));
+    const pruned = pruneBookmarkTreeByMatches(bookmarks, matchedIds);
+    const selfScoreById = scoresFromFuzzysortResults(results);
+    const bubbleById = fillBubbleScoresForForest(pruned, selfScoreById);
+    const displayBookmarks = sortForestByBubble(pruned, bubbleById);
+    const searchFolderIdsToExpand = folderIdsToExpandForStrongSearchMatches(
+      bookmarks,
+      results,
+    );
+    return [displayBookmarks, searchFolderIdsToExpand];
+  }, [bookmarks, deferredQuery, targets]);
 }

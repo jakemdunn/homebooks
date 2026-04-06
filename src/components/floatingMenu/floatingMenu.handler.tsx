@@ -2,6 +2,7 @@ import { FC, useCallback, useMemo, useReducer } from "react";
 import { FloatingMenuItems } from "../floatingMenu/floatingMenuItems";
 import { FloatingMenu } from "../floatingMenu/floatingMenu";
 import { DragId, getEventData } from "../drag/dragProvider.util";
+import { useDragContext } from "../drag/dragContext";
 import { useSettingsStorage } from "../../util/storage.types";
 import {
   FloatingMenusContextState,
@@ -13,6 +14,7 @@ import {
 export const FloatingMenuHandler: FC<
   React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>, HTMLElement>
 > = ({ children, ...props }) => {
+  const { dragSurfaceHandlers, dragIndicator } = useDragContext();
   const [menus, dispatch] = useReducer<
     FloatingMenusContextState["menus"],
     [FloatingMenusAction]
@@ -106,7 +108,17 @@ export const FloatingMenuHandler: FC<
 
   return (
     <FloatingMenusContext value={floatingMenusContext}>
-      <main {...props} onContextMenu={onContextMenu}>
+      <main
+        {...props}
+        {...(dragSurfaceHandlers ?? {})}
+        onContextMenu={onContextMenu}
+      >
+        {dragIndicator ? (
+          <div
+            className={dragIndicator.className}
+            style={dragIndicator.style}
+          />
+        ) : null}
         {children}
         {targets.map(([dragId, target]) => (
           <FloatingMenu

@@ -10,6 +10,7 @@ import {
   FaCut,
   FaCopy,
   FaPaste,
+  FaBookmark,
 } from "react-icons/fa";
 import {
   insertBookMarksFromClipboard,
@@ -21,6 +22,7 @@ export const FOLDER_MENU_ACTIONS = {
   openInCurrentWindow: "CONTEXT_MENU_FOLDER_OPENINCURRENTWINDOW",
   openInNewWindow: "CONTEXT_MENU_FOLDER_OPENINNEWWINDOW",
   openInPrivateWindow: "CONTEXT_MENU_FOLDER_OPENINPRIVATEWINDOW",
+  createBookmark: "CONTEXT_MENU_FOLDER_CREATEBOOKMARK",
   edit: "CONTEXT_MENU_FOLDER_EDIT",
   delete: "CONTEXT_MENU_FOLDER_DELETE",
   cut: "CONTEXT_MENU_FOLDER_CUT",
@@ -88,15 +90,32 @@ export const FolderMenu: MenuItems<typeof FOLDER_MENU_ACTIONS> = [
   },
   { type: "separator", id: "FOLDER-SEPARATOR-0" },
   {
+    id: FOLDER_MENU_ACTIONS.createBookmark,
+    title: i18n("createBookmarkInFolder"),
+    type: "normal",
+    icon: FaBookmark,
+    action: async (data) => {
+      if (!data.bookmarkId) return;
+      const created = await browser.bookmarks.create({
+        parentId: data.bookmarkId,
+        index: 0,
+        title: "New Bookmark",
+        url: browser.runtime.getURL(""),
+      });
+      data.setCurrentEdit?.(created);
+    },
+  },
+  {
     id: FOLDER_MENU_ACTIONS.edit,
     title: i18n("editFolder"),
     type: "normal",
     icon: FaEdit,
-    action: nodesAction(async (node) => {
-      //TODO: Launch edit dialog
-      console.log(node);
-      throw new Error("Not yet implemented");
-    }),
+    action: async (data) => {
+      if (!data.bookmarkId) return;
+      const nodes = await browser.bookmarks.getSubTree(data.bookmarkId);
+      if (!nodes?.[0]) return;
+      data.setCurrentEdit?.(nodes[0]);
+    },
   },
   {
     id: FOLDER_MENU_ACTIONS.delete,

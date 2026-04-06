@@ -1,5 +1,5 @@
 import browser from "webextension-polyfill";
-import { MenuItems, NormalMenuItem } from "./menu.constants";
+import { MenuItems, type MenuActionInfo } from "./menu.constants";
 import { i18n } from "./i18n";
 import {
   FaLock,
@@ -24,14 +24,19 @@ export const BOOKMARK_MENU_ACTIONS = {
 } as const;
 
 const bookmarkAction =
-  (withBookmark: (bookmark: browser.Bookmarks.BookmarkTreeNode) => void) =>
-  async (data: Parameters<NormalMenuItem["action"]>[0]) => {
+  (
+    withBookmark: (
+      bookmark: browser.Bookmarks.BookmarkTreeNode,
+      data: MenuActionInfo,
+    ) => void | Promise<void>,
+  ) =>
+  async (data: MenuActionInfo) => {
     if (!data.bookmarkId) return;
 
     const bookmark = (await browser.bookmarks.get(data.bookmarkId))[0];
     if (!bookmark) throw new Error(`Invalid bookmark ID ${data.bookmarkId}`);
     if (!bookmark.url) return;
-    await withBookmark(bookmark);
+    await withBookmark(bookmark, data);
   };
 
 export const writeBookmarkToClipboard = async (
@@ -122,10 +127,8 @@ export const BookmarkMenu: MenuItems<typeof BOOKMARK_MENU_ACTIONS> = [
     title: i18n("editBookmark"),
     type: "normal",
     icon: FaEdit,
-    action: bookmarkAction(async (bookmark) => {
-      //TODO: Launch edit dialog
-      console.log(bookmark);
-      throw new Error("Not yet implemented");
+    action: bookmarkAction(async (bookmark, data) => {
+      data.setCurrentEdit?.(bookmark);
     }),
   },
   {

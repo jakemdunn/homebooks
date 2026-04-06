@@ -3,7 +3,6 @@ import {
   PropsWithChildren,
   startTransition,
   useCallback,
-  useDeferredValue,
   useEffect,
   useMemo,
   useState,
@@ -14,7 +13,7 @@ import { useDragContext } from "../drag/dragContext";
 import { useSettingsStorage } from "../../util/storage.types";
 import {
   collectBookmarkSearchTargets,
-  filterBookmarksByQuery,
+  useFilterBookmarksByQuery,
 } from "./bookmarkSearch";
 import { useStorage } from "../../util/useStorage";
 
@@ -29,6 +28,19 @@ function collectFolderIds(
   });
 }
 
+function findNodeById(
+  nodes: browser.Bookmarks.BookmarkTreeNode[] | undefined,
+  id: string,
+): browser.Bookmarks.BookmarkTreeNode | undefined {
+  if (!nodes?.length) return undefined;
+  for (const node of nodes) {
+    if (node.id === id) return node;
+    const nested = findNodeById(node.children, id);
+    if (nested) return nested;
+  }
+  return undefined;
+}
+
 export const BookmarkProvider: FC<PropsWithChildren> = (props) => {
   const [settings] = useSettingsStorage();
   const [expandedIds, setExpanded] = useStorage(
@@ -41,19 +53,26 @@ export const BookmarkProvider: FC<PropsWithChildren> = (props) => {
 
   const [bookmarks, setBookmarks] =
     useState<browser.Bookmarks.BookmarkTreeNode[]>();
+  const [editFocusId, setEditFocusId] = useState<string | undefined>(undefined);
+  const setCurrentEdit = useCallback(
+    (node?: browser.Bookmarks.BookmarkTreeNode) => {
+      setEditFocusId(node?.id);
+    },
+    [],
+  );
   const [searchQuery, setSearchQuery] = useState("");
   const searchActive = useMemo(
     () => searchQuery.trim().length > 0,
     [searchQuery],
   );
-  const deferredSearchQuery = useDeferredValue(searchQuery);
   const searchTargets = useMemo(
     () => collectBookmarkSearchTargets(bookmarks),
     [bookmarks],
   );
-  const [displayBookmarks, searchFolderIdsToExpand] = useMemo(
-    () => filterBookmarksByQuery(bookmarks, deferredSearchQuery, searchTargets),
-    [bookmarks, deferredSearchQuery, searchTargets],
+  const [displayBookmarks, searchFolderIdsToExpand] = useFilterBookmarksByQuery(
+    bookmarks,
+    searchQuery,
+    searchTargets,
   );
   const allFolderIds = useMemo(
     () => (bookmarks ? collectFolderIds(bookmarks) : undefined),
@@ -93,9 +112,16 @@ export const BookmarkProvider: FC<PropsWithChildren> = (props) => {
     };
   }, [settings?.rootFolder]);
 
+  const currentEdit = useMemo(() => {
+    if (editFocusId === undefined || bookmarks === undefined) return undefined;
+    return findNodeById(bookmarks, editFocusId);
+  }, [bookmarks, editFocusId]);
+  console.log("currentEdit", editFocusId, currentEdit);
+
   const expandedSource = searchPeekedIds ?? expandedIds;
   const updateExpanded = useCallback(
     (updated: string[]) => {
+      console.log("updateExpanded transition", updated);
       startTransition(() => {
         if (searchActive) {
           setSearchPeekedIds(updated);
@@ -137,22 +163,24 @@ export const BookmarkProvider: FC<PropsWithChildren> = (props) => {
     () => ({
       bookmarks,
       collapseAll,
-      deferredSearchQuery,
+      currentEdit,
       displayBookmarks,
       expandAll,
       expanded,
       searchQuery,
+      setCurrentEdit,
       setSearchQuery,
       toggle,
     }),
     [
       bookmarks,
       collapseAll,
-      deferredSearchQuery,
+      currentEdit,
       displayBookmarks,
       expandAll,
       expanded,
       searchQuery,
+      setCurrentEdit,
       setSearchQuery,
       toggle,
     ],

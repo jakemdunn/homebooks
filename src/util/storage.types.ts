@@ -2,6 +2,10 @@ import * as yup from "yup";
 import { useStorage } from "./useStorage";
 import * as i18nMessages from "../../public/_locales/en/messages.json";
 
+export type ExtensionStorageData = {
+  menuVisibility: Record<string, boolean>;
+};
+
 export const useExtensionStorage = () =>
   useStorage<Record<string, boolean>>("menuVisibility", {}, "local");
 

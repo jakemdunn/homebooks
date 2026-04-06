@@ -11,12 +11,14 @@ import { FolderMenu } from "../../util/menu.folder";
 import { useStorage } from "../../util/useStorage";
 import { SETTINGS_PANEL_VISIBLE } from "../settings/settings.util";
 import { useFloatingMenuContext } from "./floatingMenu.context";
+import { useBookmarkContext } from "../bookmark/bookmarkContext";
 
 type MenuActionProps = Parameters<NormalMenuItem["action"]>;
 interface FloatingMenuItemsProps {
   dragId: DragId;
 }
 export const FloatingMenuItems: FC<FloatingMenuItemsProps> = ({ dragId }) => {
+  const { setCurrentEdit } = useBookmarkContext();
   const [type, id] = useParseDragId(dragId);
   const menusByType = useMemo<Record<DragType, MenuItems>>(
     () => ({
@@ -31,12 +33,14 @@ export const FloatingMenuItems: FC<FloatingMenuItemsProps> = ({ dragId }) => {
   const [menuActionProps, setMenuActionProps] = useState<MenuActionProps>([{}]);
   useEffect(() => {
     (async () => {
-      if (type === "folder") setMenuActionProps([{ bookmarkId: id }]);
-      if (type === "bookmark") setMenuActionProps([{ bookmarkId: id }]);
+      if (type === "folder")
+        setMenuActionProps([{ bookmarkId: id, setCurrentEdit }]);
+      if (type === "bookmark")
+        setMenuActionProps([{ bookmarkId: id, setCurrentEdit }]);
       if (type === "tab")
         setMenuActionProps([{}, await browser.tabs.get(parseInt(id))]);
     })();
-  }, [id, type]);
+  }, [id, type, setCurrentEdit]);
   const onClick = useCallback(
     (item: NormalMenuItem) => {
       item.action(...menuActionProps);

@@ -2,14 +2,16 @@ import { IconType } from "react-icons";
 import browser from "webextension-polyfill";
 
 type MenuIds = Record<string, string>;
+
+export type MenuActionInfo = Pick<browser.Menus.OnClickData, "bookmarkId"> & {
+  setCurrentEdit?: (node?: browser.Bookmarks.BookmarkTreeNode) => void;
+};
+
 export interface NormalMenuItem<T extends MenuIds = MenuIds> {
   type: Extract<browser.Menus.ItemType, "normal">;
   title: string;
   id: T[keyof T];
-  action: (
-    info: Pick<browser.Menus.OnClickData, "bookmarkId">,
-    tab?: browser.Tabs.Tab
-  ) => void;
+  action: (info: MenuActionInfo, tab?: browser.Tabs.Tab) => void;
   icon?: IconType;
 }
 

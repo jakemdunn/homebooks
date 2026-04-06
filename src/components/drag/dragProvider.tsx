@@ -15,7 +15,6 @@ import {
   processDataTransfer,
   useGetEventData,
 } from "./dragProvider.util";
-import { FloatingMenuHandler } from "../floatingMenu/floatingMenu.handler";
 import { DragState, DragContextProps, DragContext } from "./dragContext";
 
 type DragAction =
@@ -36,9 +35,7 @@ type DragAction =
       action: "endDrag" | "removeDestination";
     };
 
-export const DragProvider: FC<
-  React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>, HTMLElement>
-> = ({ children, ...props }) => {
+export const DragProvider: FC<React.PropsWithChildren> = ({ children }) => {
   const { eventData, getEventData } = useGetEventData();
   const [dragState, dragDispatch] = useReducer<DragState, [DragAction]>(
     (state, action) => {
@@ -300,27 +297,31 @@ export const DragProvider: FC<
     return () => clearTimeout(dragOverTimeout.current);
   }, [dragState.destinationId, dragState.position]);
 
+  const dragSurfaceHandlers = useMemo(
+    () => ({
+      onDragStart,
+      onDragEnd,
+      onDragLeave,
+      onDragOver,
+      onDrop,
+    }),
+    [onDragStart, onDragEnd, onDragLeave, onDragOver, onDrop]
+  );
+
   const dragContextState = useMemo<DragContextProps>(
     () => ({
       ...dragState,
       sources,
+      dragSurfaceHandlers,
+      dragIndicator: {
+        className: indicatorStyle,
+        style: indicator,
+      },
     }),
-    [dragState, sources]
+    [dragState, sources, dragSurfaceHandlers, indicator]
   );
 
   return (
-    <DragContext.Provider value={dragContextState}>
-      <FloatingMenuHandler
-        onDragStart={onDragStart}
-        onDragEnd={onDragEnd}
-        onDragLeave={onDragLeave}
-        onDragOver={onDragOver}
-        onDrop={onDrop}
-        {...props}
-      >
-        <div className={indicatorStyle} style={indicator} />
-        {children}
-      </FloatingMenuHandler>
-    </DragContext.Provider>
+    <DragContext.Provider value={dragContextState}>{children}</DragContext.Provider>
   );
 };

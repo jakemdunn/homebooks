@@ -75,6 +75,10 @@
     "message": "Open folder into private window",
     "description": "Opens all bookmarks in the folder into a private window."
   },
+  "createBookmarkInFolder": {
+    "message": "Create Bookmark",
+    "description": "Add a new bookmark at the top of this folder."
+  },
   "editFolder": {
     "message": "Edit Folder",
     "description": "Edit the folder title."

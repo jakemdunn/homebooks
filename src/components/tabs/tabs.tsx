@@ -114,6 +114,7 @@ export const TabsProvider: FC = () => {
 
   const onFolderClick = useCallback(
     (windowId: string) => () => {
+      console.log("onFolderClick transition", windowId);
       startTransition(() =>
         setClosedTabs((prev) => {
           const updated = new Set([...prev]);

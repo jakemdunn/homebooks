@@ -10,10 +10,11 @@ export interface BookmarkState {
   searchQuery: string;
   setSearchQuery: (value: string) => void;
   displayBookmarks?: browser.Bookmarks.BookmarkTreeNode[];
-  deferredSearchQuery: string;
+  currentEdit?: browser.Bookmarks.BookmarkTreeNode;
+  setCurrentEdit: (node?: browser.Bookmarks.BookmarkTreeNode) => void;
 }
 
 export const BookmarkContext = createContext<BookmarkState>(
-  {} as BookmarkState
+  {} as BookmarkState,
 );
 export const useBookmarkContext = () => useContext(BookmarkContext);
