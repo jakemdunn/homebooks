@@ -22,7 +22,6 @@ export const FloatingMenuHandler: FC<
     switch (action.type) {
       case "addMenu":
         return {
-          ...state,
           [action.dragId]: {
             reference: action.reference,
             type: action.menuType,
@@ -56,7 +55,6 @@ export const FloatingMenuHandler: FC<
 
       event.preventDefault();
       event.stopPropagation();
-      dispatch({ type: "removeMenu", dragId });
 
       const baseRect = target.getBoundingClientRect();
       const offset = {

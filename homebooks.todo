@@ -10,7 +10,7 @@ Bugs:
   ☐ Unable to paste folder from homebooks to bookmarks bar
   ✘ Tags lost when cutting and pasting @cancelled(26-04-04 10:34) Not supported by Firefox
   ✔ Settings menu not loading current option values properly on load @done(26-04-04 10:32)
-  ☐ ctrl+click on mac allows multiple context menu popups to display
+  ✔ ctrl+click on mac allows multiple context menu popups to display @done(26-04-06 08:20)
 
 Core Features:
   ✔ Global Search: https://github.com/farzher/fuzzysort @done(26-04-04 10:31)

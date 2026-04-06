@@ -1,4 +1,5 @@
 import {
+  ClientRectObject,
   useFloating,
   useInteractions,
   autoUpdate,
@@ -10,6 +11,7 @@ import {
   useListNavigation,
   useTransitionStyles,
   useTypeahead,
+  VirtualElement,
 } from "@floating-ui/react";
 import {
   FC,
@@ -30,6 +32,64 @@ import {
 } from "./floatingMenu.context";
 import { useFloatingMenusContext } from "./floatingMenu.handler.context";
 
+function isReferenceConnected(reference: ReferenceType): boolean {
+  if (reference instanceof Element) {
+    return reference.isConnected;
+  }
+  const root = reference.contextElement;
+  return root == null || root.isConnected;
+}
+
+function copyRect(rect: ClientRectObject | DOMRect) {
+  return { ...rect } as ClientRectObject;
+}
+
+/** Keeps the last in-document rect so the menu does not jump when the anchor unmounts (e.g. delete). */
+function useStableReference(reference: ReferenceType): ReferenceType {
+  const lastGood = useRef<ClientRectObject | null>(null);
+
+  return useMemo<ReferenceType>(() => {
+    const wrapped: VirtualElement = {
+      getBoundingClientRect() {
+        if (isReferenceConnected(reference)) {
+          const rect = copyRect(reference.getBoundingClientRect());
+          lastGood.current = rect;
+          return rect;
+        }
+        const cached = lastGood.current;
+        if (cached) {
+          return copyRect(cached);
+        }
+        return copyRect(reference.getBoundingClientRect());
+      },
+      getClientRects() {
+        if (isReferenceConnected(reference)) {
+          if (reference instanceof Element) {
+            return Array.from(reference.getClientRects()).map(copyRect);
+          }
+          const rects = reference.getClientRects?.();
+          return rects
+            ? Array.from(rects as ArrayLike<ClientRectObject>).map(copyRect)
+            : [];
+        }
+        const cached = lastGood.current;
+        return cached ? [copyRect(cached)] : [];
+      },
+    };
+
+    Object.defineProperty(wrapped, "contextElement", {
+      configurable: true,
+      get() {
+        return reference instanceof Element
+          ? reference
+          : reference.contextElement;
+      },
+    });
+
+    return wrapped;
+  }, [reference]);
+}
+
 export interface FloatingMenuProps {
   items: ReactElement;
   reference: ReferenceType;
@@ -44,6 +104,7 @@ export const FloatingMenu: FC<PropsWithChildren<FloatingMenuProps>> = ({
   dragId,
 }) => {
   const { dispatch } = useFloatingMenusContext();
+  const stableReference = useStableReference(reference);
   const [open, onOpenChange] = useState(true);
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
   const { refs, floatingStyles, context, placement } = useFloating({
@@ -80,7 +141,7 @@ export const FloatingMenu: FC<PropsWithChildren<FloatingMenuProps>> = ({
     outsidePress: (event) => {
       if (event.button !== 2) return true;
       const closestDragElement = (event.target as HTMLElement)?.closest(
-        `[data-drag-id]`
+        `[data-drag-id]`,
       );
       return closestDragElement?.getAttribute("data-drag-id") !== dragId;
     },
@@ -101,7 +162,7 @@ export const FloatingMenu: FC<PropsWithChildren<FloatingMenuProps>> = ({
   });
 
   const { getReferenceProps, getFloatingProps, getItemProps } = useInteractions(
-    [dismiss, listNavigation, typeahead]
+    [dismiss, listNavigation, typeahead],
   );
 
   const closeMenu = useCallback(() => onOpenChange(false), []);
@@ -126,7 +187,7 @@ export const FloatingMenu: FC<PropsWithChildren<FloatingMenuProps>> = ({
       open,
       placement,
       refs.setReference,
-    ]
+    ],
   );
   useEffect(() => {
     dispatch({ type: "setState", dragId, state: contextState });
@@ -137,12 +198,12 @@ export const FloatingMenu: FC<PropsWithChildren<FloatingMenuProps>> = ({
       contextualMenu: () => type === "context",
     },
     menuStyle,
-    placement
+    placement,
   );
 
   useEffect(() => {
-    refs.setReference(reference);
-  }, [refs, reference]);
+    refs.setReference(stableReference);
+  }, [refs, stableReference]);
 
   useEffect(() => {
     if (!isMounted) {
