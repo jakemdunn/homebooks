@@ -1,4 +1,4 @@
-import { FC, useCallback, useMemo } from "react";
+import { FC, useMemo } from "react";
 import browser from "webextension-polyfill";
 import { Folder, FolderProps } from "../folder/folder";
 import { Tab } from "./tab";
@@ -20,16 +20,6 @@ export const WindowComponent: FC<WindowProps> = ({
   index,
   ...props
 }) => {
-  const onContextMenu = useCallback<
-    React.MouseEventHandler<HTMLElement>
-  >(() => {
-    if (browser.menus?.overrideContext) {
-      browser.menus.overrideContext({
-        showDefaults: true,
-      });
-    }
-  }, []);
-
   const dragId = useMemo<DragId>(() => `window-${windowId}`, [windowId]);
   const source = useMemo<DataTransferSource[]>(
     () =>
@@ -50,7 +40,6 @@ export const WindowComponent: FC<WindowProps> = ({
       data-type={"window"}
       data-index={index}
       draggable
-      onContextMenu={onContextMenu}
       onDragStart={onDragStart}
       key={windowId}
       id={`window-${windowId}`}

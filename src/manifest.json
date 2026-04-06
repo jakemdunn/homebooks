@@ -6,9 +6,6 @@
     "bookmarks",
     "clipboardRead",
     "clipboardWrite",
-    "menus.overrideContext",
-    "contextMenus",
-    "menus",
     "storage",
     "tabs"
   ],

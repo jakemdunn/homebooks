@@ -2,7 +2,7 @@ Bugs:
   ✔ Unable to move anything onto folders in bookmarks @done(25-03-03 07:04)
   ☐ Unable to move folder to bottom row of folder
   ✔ Context menu items missing for bookmarks @done(25-03-03 17:49)
-  ☐ Remove orphaned native right click code
+  ✔ Remove orphaned native right click code @done(26-04-06 08:17)
   ☐ Peeking not working
   ☐ Unable to just drop back onto previous space
   ✔ Unable to paste folder copied from bookmarks bar @done(25-04-05 18:51)

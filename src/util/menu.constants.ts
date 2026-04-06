@@ -3,12 +3,13 @@ import browser from "webextension-polyfill";
 
 type MenuIds = Record<string, string>;
 
-export type MenuActionInfo = Pick<browser.Menus.OnClickData, "bookmarkId"> & {
+export type MenuActionInfo = {
+  bookmarkId?: string;
   setCurrentEdit?: (node?: browser.Bookmarks.BookmarkTreeNode) => void;
 };
 
 export interface NormalMenuItem<T extends MenuIds = MenuIds> {
-  type: Extract<browser.Menus.ItemType, "normal">;
+  type: "normal";
   title: string;
   id: T[keyof T];
   action: (info: MenuActionInfo, tab?: browser.Tabs.Tab) => void;
@@ -16,7 +17,7 @@ export interface NormalMenuItem<T extends MenuIds = MenuIds> {
 }
 
 export interface SeparatorMenuItem {
-  type: Extract<browser.Menus.ItemType, "separator">;
+  type: "separator";
   id: string;
 }
 
