@@ -12,6 +12,7 @@ import { useStorage } from "../../util/useStorage";
 import { SETTINGS_PANEL_VISIBLE } from "../settings/settings.util";
 import { useFloatingMenuContext } from "./floatingMenu.context";
 import { useBookmarkContext } from "../bookmark/bookmarkContext";
+import { useModalsContext } from "../modals/modals.context";
 
 type MenuActionProps = Parameters<NormalMenuItem["action"]>;
 interface FloatingMenuItemsProps {
@@ -19,6 +20,7 @@ interface FloatingMenuItemsProps {
 }
 export const FloatingMenuItems: FC<FloatingMenuItemsProps> = ({ dragId }) => {
   const { setCurrentEdit } = useBookmarkContext();
+  const { openNewBookmarkModal } = useModalsContext();
   const [type, id] = useParseDragId(dragId);
   const menusByType = useMemo<Record<DragType, MenuItems>>(
     () => ({
@@ -34,13 +36,18 @@ export const FloatingMenuItems: FC<FloatingMenuItemsProps> = ({ dragId }) => {
   useEffect(() => {
     (async () => {
       if (type === "folder")
-        setMenuActionProps([{ bookmarkId: id, setCurrentEdit }]);
+        setMenuActionProps([
+          { bookmarkId: id, openNewBookmarkModal, setCurrentEdit },
+        ]);
       if (type === "bookmark")
         setMenuActionProps([{ bookmarkId: id, setCurrentEdit }]);
       if (type === "tab")
-        setMenuActionProps([{}, await browser.tabs.get(parseInt(id))]);
+        setMenuActionProps([
+          { openNewBookmarkModal, setCurrentEdit },
+          await browser.tabs.get(parseInt(id)),
+        ]);
     })();
-  }, [id, type, setCurrentEdit]);
+  }, [id, openNewBookmarkModal, type, setCurrentEdit]);
   const onClick = useCallback(
     (item: NormalMenuItem) => {
       item.action(...menuActionProps);

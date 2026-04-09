@@ -40,6 +40,7 @@ export const actionButtonStyle = style({
   display: "flex",
   alignItems: "center",
   gap: "0.15rem",
+  textWrap: "nowrap",
   ":hover": {
     color: globalTheme.colors.text.highContrast,
   },

@@ -17,6 +17,7 @@ import {
 import { useBookmarkContext } from "./bookmarkContext";
 import { bookmarkEditInputStyle, bookmarkEditRowStyle } from "./bookmark.css";
 import { bookmarksStyle } from "./bookmarks.css";
+import { BookmarkFolderEmptyState } from "./bookmarkFolderEmpty";
 
 function useDismissOnOutsideClick(
   ref: RefObject<HTMLElement | null>,
@@ -43,6 +44,10 @@ const BookmarkFolderEditing: FC<{
 }> = ({ node, detailText, onDragStart }) => {
   const { expanded, setCurrentEdit } = useBookmarkContext();
   const isOpen = expanded.includes(node.id);
+  const bookmarkOnlyCount = useMemo(
+    () => node.children?.filter((childNode) => childNode.url).length ?? 0,
+    [node.children],
+  );
   const [title, setTitle] = useState(node.title);
   const titleRef = useRef(title);
   titleRef.current = title;
@@ -89,6 +94,9 @@ const BookmarkFolderEditing: FC<{
           {node.children?.map((child) => (
             <Bookmark node={child} key={child.id} />
           ))}
+          {bookmarkOnlyCount === 0 ? (
+            <BookmarkFolderEmptyState folderId={node.id} />
+          ) : null}
         </section>
       )}
     </div>
@@ -252,6 +260,9 @@ export const Bookmark: FC<{ node: browser.Bookmarks.BookmarkTreeNode }> = ({
         {node.children?.map((child) => (
           <Bookmark node={child} key={child.id} />
         ))}
+        {bookmarkCount === 0 ? (
+          <BookmarkFolderEmptyState folderId={node.id} />
+        ) : null}
       </Folder>
     );
   }

@@ -14,7 +14,7 @@ import {
   tabsWrapperStyle,
 } from "./tabs.css";
 import { WindowComponent } from "./window";
-import { extensionURL } from "../drag/dragProvider.util";
+import { isTabUrlShownInTabsColumn } from "../../util/restrictedTabUrl";
 import { PiAppWindowFill } from "react-icons/pi";
 import { useResizeDetector } from "react-resize-detector";
 import { assignInlineVars } from "@vanilla-extract/dynamic";
@@ -65,23 +65,23 @@ export const TabsProvider: FC = () => {
           })
         )[0].windowId;
 
-        const tabsByWindow = tabs
-          .filter(
-            (tab) =>
-              !tab.url?.includes(extensionURL) && !tab.url?.match(/^about:/),
-          )
-          .reduce<Record<number, browser.Tabs.Tab[]>>((byWindow, tab) => {
+        const tabsByWindow = tabs.reduce<Record<number, browser.Tabs.Tab[]>>(
+          (byWindow, tab) => {
             const windowId = tab.windowId ?? 0;
             return {
               ...byWindow,
               [windowId]: [...(byWindow[windowId] ?? []), tab],
             };
-          }, {});
+          },
+          {},
+        );
         setTabs(
           Object.entries(tabsByWindow)
-            .map(([windowId, tabs]) => ({
+            .map(([windowId, windowTabs]) => ({
               windowId,
-              tabs,
+              tabs: windowTabs.filter((tab) =>
+                isTabUrlShownInTabsColumn(tab.url),
+              ),
             }))
             .sort((a, b) => {
               if (!currentWindowId) return 0;
@@ -114,7 +114,6 @@ export const TabsProvider: FC = () => {
 
   const onFolderClick = useCallback(
     (windowId: string) => () => {
-      console.log("onFolderClick transition", windowId);
       startTransition(() =>
         setClosedTabs((prev) => {
           const updated = new Set([...prev]);

@@ -44,6 +44,7 @@ export const Settings: FC<PropsWithChildren> = ({ children }) => {
     false,
     "session",
   );
+
   const tobyImport = useTobyImport();
   const selectFile = useCallback(
     async (event: React.ChangeEvent<HTMLInputElement>) => {

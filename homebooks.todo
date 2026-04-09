@@ -19,9 +19,8 @@ Core Features:
   ✔ Open entire folder into window @done(25-04-05 18:50)
   ✔ Folder context menus @done(25-04-05 18:50)
   ✔ Input/Form styling @done(26-04-04 10:11)
-  ☐ Multi Select for copy/paste & drag/drop
-  ☐ Edit Popups
-  ☐ Create new folder
+  ✔ Edit Popups @done(26-04-08 18:07)
+  ✔ Create new folder @done(26-04-08 18:07)
   ☐ Drag folders/bookmarks to windows column to open
   ✘ Tags @cancelled(26-04-04 10:34) Not supported by Firefox
   ☐ Save full window to new folder
@@ -34,6 +33,11 @@ Core Features:
   ☐ Window group context menus
   ☐ Tab context menus incomplete
   ☐ Make context menus aware of current clipboard items / number of tabs being opened and display the count
+  ☐ Style popup page
+  ☐ Style "Create New Item" popup
+  ☐ Style "Edit Item" state
+  ☐ Refactor drag and drop to insert item in situ during drag, and animate into place after release.
+  ☐ Multi Select for copy/paste & drag/drop
 
 Nice To Have:
   ☐ Cross Browser Sync (xBrowserSync? floccus!?)

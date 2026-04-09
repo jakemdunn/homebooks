@@ -13,6 +13,7 @@ import {
   useSetDataTransfer,
 } from "../../drag/dragProvider.util";
 import { HeightToggle } from "../../heightToggle/heightToggle";
+import { useSettingsStorage } from "../../../util/storage.types";
 
 type FolderOption = {
   children?: FolderOption[];
@@ -158,7 +159,16 @@ const AutoExpandToSelection: FC<{
   return null;
 };
 
-export const FolderSelect: FC<FieldAttributes<unknown>> = (props) => {
+type FolderSelectFieldProps = FieldAttributes<unknown> & {
+  underHomebooksRoot?: boolean;
+};
+
+export const FolderSelect: FC<FolderSelectFieldProps> = ({
+  underHomebooksRoot = false,
+  ...fieldProps
+}) => {
+  const [settings] = useSettingsStorage();
+  const rootFolderId = settings?.rootFolder;
   const [options, setOptions] = useState<FolderOption[]>([]);
   const [expanded, setExpanded] = useState<string[]>([]);
   const toggleExpanded = useCallback((id: string) => {
@@ -172,36 +182,49 @@ export const FolderSelect: FC<FieldAttributes<unknown>> = (props) => {
   }, []);
 
   useEffect(() => {
-    const getBookmarks = async () => {
-      const tree = await bookmarks.getTree();
-      const getOptions = (nodes: typeof tree): FolderOption[] => {
-        return nodes.reduce<FolderOption[]>((result, node) => {
-          if (node.type === "folder" && node.title && !node.children) {
-            result.push({
-              title: node.title,
+    const getOptions = (
+      nodes: Bookmarks.BookmarkTreeNode[],
+    ): FolderOption[] => {
+      return nodes.reduce<FolderOption[]>((result, node) => {
+        if (node.type === "folder" && node.title && !node.children) {
+          result.push({
+            title: node.title,
+            node,
+            nodeIds: new Set([node.id]),
+          });
+        }
+        if (node.children) {
+          const children = getOptions(node.children);
+          const nodeIds = new Set([
+            node.id,
+            ...children.map((child) => [...child.nodeIds.values()]).flat(),
+          ]);
+          return [
+            ...result,
+            {
+              title: node.title ? node.title : "Browser Root",
               node,
-              nodeIds: new Set([node.id]),
-            });
-          }
-          if (node.children) {
-            const children = getOptions(node.children);
-            const nodeIds = new Set([
-              node.id,
-              ...children.map((child) => [...child.nodeIds.values()]).flat(),
-            ]);
-            return [
-              ...result,
-              {
-                title: node.title ? node.title : "Browser Root",
-                node,
-                children,
-                nodeIds,
-              },
-            ];
-          }
-          return result;
-        }, []);
-      };
+              children,
+              nodeIds,
+            },
+          ];
+        }
+        return result;
+      }, []);
+    };
+
+    const getBookmarks = async () => {
+      let tree: Bookmarks.BookmarkTreeNode[];
+      if (underHomebooksRoot) {
+        if (!rootFolderId) {
+          setOptions([]);
+          return;
+        }
+        const sub = await bookmarks.getSubTree(rootFolderId);
+        tree = sub[0] ? [sub[0]] : [];
+      } else {
+        tree = await bookmarks.getTree();
+      }
       setOptions(getOptions(tree));
     };
     getBookmarks();
@@ -216,11 +239,11 @@ export const FolderSelect: FC<FieldAttributes<unknown>> = (props) => {
       bookmarks.onMoved.removeListener(getBookmarks);
       bookmarks.onRemoved.removeListener(getBookmarks);
     };
-  }, []);
+  }, [underHomebooksRoot, rootFolderId]);
 
   return (
     <div className={optionsStyle} data-grid-container>
-      <Field {...props}>
+      <Field {...fieldProps}>
         {({ field }: FieldProps<unknown>) => (
           <>
             <AutoExpandToSelection

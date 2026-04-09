@@ -102,5 +102,93 @@
   "importFromToby": {
     "message": "Import from Toby",
     "description": "Import bookmarks from Toby."
+  },
+  "createItemModalTitleBookmark": {
+    "message": "New bookmark",
+    "description": "Title for the create bookmark modal."
+  },
+  "createItemModalTitleFolder": {
+    "message": "New folder",
+    "description": "Title for the create folder modal."
+  },
+  "createFormTitleLabel": {
+    "message": "Title",
+    "description": "Label for title field in create item form."
+  },
+  "createFormUrlLabel": {
+    "message": "URL",
+    "description": "Label for URL field in create bookmark form."
+  },
+  "createFormParentLabel": {
+    "message": "Parent folder",
+    "description": "Label for parent folder picker."
+  },
+  "createFormSubmit": {
+    "message": "Save",
+    "description": "Submit button for create item form."
+  },
+  "createFormCancel": {
+    "message": "Cancel",
+    "description": "Cancel button for create item form."
+  },
+  "createFormGlobalError": {
+    "message": "Please fix the errors below.",
+    "description": "Summary shown after a failed submit when validation errors exist."
+  },
+  "createFormTitleRequired": {
+    "message": "Title is required.",
+    "description": "Validation when title is empty."
+  },
+  "createFormUrlRequired": {
+    "message": "URL is required.",
+    "description": "Validation when URL is empty."
+  },
+  "createFormUrlInvalid": {
+    "message": "Enter a valid URL.",
+    "description": "Validation when URL is not parseable."
+  },
+  "createFormParentRequired": {
+    "message": "Choose a parent folder.",
+    "description": "Validation when parent folder is missing."
+  },
+  "popupAddBookmarkTitle": {
+    "message": "Add bookmark",
+    "description": "Heading for extension popup when adding a bookmark."
+  },
+  "popupLoading": {
+    "message": "Loading…",
+    "description": "Shown in the toolbar popup while settings and tab info load."
+  },
+  "popupRestrictedTitle": {
+    "message": "Can't add a bookmark for this tab",
+    "description": "Popup heading when the active tab is an extension or browser page."
+  },
+  "popupRestrictedExplanation": {
+    "message": "Browser and extension pages don't use a normal web address. Open a regular website, then use this popup or HomeBooks to save it.",
+    "description": "Short explanation under the restricted-tab popup title."
+  },
+  "popupVersionLabel": {
+    "message": "Version",
+    "description": "Label before the extension version number on the popup info screen."
+  },
+  "popupAboutHeading": {
+    "message": "About",
+    "description": "Section heading on the popup info screen."
+  },
+  "popupOpenSettings": {
+    "message": "Open Settings",
+    "description": "Button that focuses HomeBooks and opens the settings panel."
+  },
+  "folderEmptyBody": {
+    "message": "No bookmarks here yet. Drag a tab over from the right or {{createLink}}.",
+    "description": "Empty-folder copy; keep the {{createLink}} token so a control can be inlined."
+  },
+  "folderEmptyCreateLink": {
+    "message": "create one now",
+    "description": "Label for the inline create-bookmark control in folderEmptyBody."
+  },
+  "tabsWindowNoValidTabs": {
+    "message": "No valid tabs in this window.",
+    "description": "Empty state when a browser window has no tabs with bookmarkable URLs."
   }
 }

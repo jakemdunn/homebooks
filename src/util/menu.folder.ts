@@ -96,13 +96,7 @@ export const FolderMenu: MenuItems<typeof FOLDER_MENU_ACTIONS> = [
     icon: FaBookmark,
     action: async (data) => {
       if (!data.bookmarkId) return;
-      const created = await browser.bookmarks.create({
-        parentId: data.bookmarkId,
-        index: 0,
-        title: "New Bookmark",
-        url: browser.runtime.getURL(""),
-      });
-      data.setCurrentEdit?.(created);
+      data.openNewBookmarkModal?.({ parentId: data.bookmarkId });
     },
   },
   {

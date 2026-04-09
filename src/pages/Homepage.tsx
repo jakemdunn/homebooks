@@ -8,20 +8,25 @@ import { TabsProvider } from "../components/tabs/tabs";
 import { Settings } from "../components/settings/settings";
 import { FloatingMenuHandler } from "../components/floatingMenu/floatingMenu.handler";
 import { StorageProvider } from "../util/storage.provider";
+import { ModalsProvider } from "../components/modals/modals.provider";
+import { CreateItemModal } from "../components/createItem/createItemModal";
 
 export const Homepage: FC = () => {
   return (
     <StorageProvider>
       <DragProvider>
         <BookmarkProvider>
-          <FloatingMenuHandler className={homepageStyle}>
-            <Settings>
-              <div className={contentStyle}>
-                <Bookmarks />
-                <TabsProvider />
-              </div>
-            </Settings>
-          </FloatingMenuHandler>
+          <ModalsProvider>
+            <FloatingMenuHandler className={homepageStyle}>
+              <Settings>
+                <div className={contentStyle}>
+                  <Bookmarks />
+                  <TabsProvider />
+                </div>
+              </Settings>
+            </FloatingMenuHandler>
+            <CreateItemModal />
+          </ModalsProvider>
         </BookmarkProvider>
       </DragProvider>
     </StorageProvider>

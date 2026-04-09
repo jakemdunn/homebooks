@@ -1,11 +1,16 @@
 import { IconType } from "react-icons";
 import browser from "webextension-polyfill";
+import type { CreateModalDefaults } from "../components/modals/modals.context";
 
 type MenuIds = Record<string, string>;
+
+export type { CreateModalDefaults };
 
 export type MenuActionInfo = {
   bookmarkId?: string;
   setCurrentEdit?: (node?: browser.Bookmarks.BookmarkTreeNode) => void;
+  openNewBookmarkModal?: (defaults?: CreateModalDefaults) => void;
+  openNewFolderModal?: (defaults?: CreateModalDefaults) => void;
 };
 
 export interface NormalMenuItem<T extends MenuIds = MenuIds> {

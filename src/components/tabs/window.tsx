@@ -2,6 +2,7 @@ import { FC, useMemo } from "react";
 import browser from "webextension-polyfill";
 import { Folder, FolderProps } from "../folder/folder";
 import { Tab } from "./tab";
+import { TabsWindowEmpty } from "./tabsWindowEmpty";
 import {
   DataTransferSource,
   DragId,
@@ -47,9 +48,13 @@ export const WindowComponent: FC<WindowProps> = ({
       detail={`${tabs.length} Tabs`}
       type="window"
     >
-      {tabs.map((tab) => (
-        <Tab value={tab} key={tab.id ?? `${index}-${tab.index}`} />
-      ))}
+      {tabs.length === 0 ? (
+        <TabsWindowEmpty />
+      ) : (
+        tabs.map((tab) => (
+          <Tab value={tab} key={tab.id ?? `${index}-${tab.index}`} />
+        ))
+      )}
     </Folder>
   );
 };

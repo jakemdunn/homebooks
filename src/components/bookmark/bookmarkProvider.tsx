@@ -116,12 +116,10 @@ export const BookmarkProvider: FC<PropsWithChildren> = (props) => {
     if (editFocusId === undefined || bookmarks === undefined) return undefined;
     return findNodeById(bookmarks, editFocusId);
   }, [bookmarks, editFocusId]);
-  console.log("currentEdit", editFocusId, currentEdit);
 
   const expandedSource = searchPeekedIds ?? expandedIds;
   const updateExpanded = useCallback(
     (updated: string[]) => {
-      console.log("updateExpanded transition", updated);
       startTransition(() => {
         if (searchActive) {
           setSearchPeekedIds(updated);
