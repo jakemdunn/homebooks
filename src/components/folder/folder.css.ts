@@ -48,7 +48,6 @@ export const folderStyle = style({
       filter: "blur(1px)",
       transform: "scale(0.98)",
       opacity: 0.7,
-      pointerEvents: "none",
     },
   },
 });

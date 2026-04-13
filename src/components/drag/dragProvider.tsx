@@ -1,5 +1,6 @@
 import {
   FC,
+  startTransition,
   useCallback,
   useEffect,
   useMemo,
@@ -108,7 +109,7 @@ export const DragProvider: FC<React.PropsWithChildren> = ({ children }) => {
       sourceIds: new Set(),
       peekedIds: new Set(),
       dragging: false,
-    }
+    },
   );
   const [sources, setSources] = useState<DataTransferSource[]>([]);
   useEffect(() => {
@@ -122,7 +123,7 @@ export const DragProvider: FC<React.PropsWithChildren> = ({ children }) => {
   const getPosition = useCallback<
     (
       target: Element,
-      event: React.DragEvent<HTMLElement>
+      event: React.DragEvent<HTMLElement>,
     ) => DragState["position"]
   >((target, event) => {
     const rect = target.getBoundingClientRect();
@@ -169,7 +170,7 @@ export const DragProvider: FC<React.PropsWithChildren> = ({ children }) => {
         id,
       });
     },
-    [getEventData]
+    [getEventData],
   );
 
   const onDragEnd = useCallback<React.DragEventHandler<HTMLElement>>(() => {
@@ -186,7 +187,7 @@ export const DragProvider: FC<React.PropsWithChildren> = ({ children }) => {
         action: "removeDestination",
       });
     },
-    [getEventData]
+    [getEventData],
   );
 
   const onDragOver = useCallback<React.DragEventHandler<HTMLElement>>(
@@ -200,24 +201,28 @@ export const DragProvider: FC<React.PropsWithChildren> = ({ children }) => {
         position: getPosition(target, event),
       });
     },
-    [getEventData, getPosition]
+    [getEventData, getPosition],
   );
 
   const onDrop = useCallback<React.DragEventHandler<HTMLElement>>(
     (event) => {
+      const position = dragState.position;
+      const sourceIds = dragState.sourceIds;
+      const { id, target } = getEventData(event);
+
       dragDispatch({
         action: "endDrag",
       });
 
-      const { id, target } = getEventData(event);
-      if (!id || !target || !dragState.position) return;
+      const droppedOnSelf = id && sourceIds.has(id);
+      if (droppedOnSelf || !id || !target || !position) return;
 
       // TODO: Handle file drop for Toby Import
 
-      processDataTransfer(event, dragState.position);
+      processDataTransfer(event, position);
       event.preventDefault();
     },
-    [dragState.position, getEventData]
+    [dragState.position, dragState.sourceIds, getEventData],
   );
 
   const [indicator, setIndicator] = useState<React.CSSProperties>({});
@@ -291,7 +296,9 @@ export const DragProvider: FC<React.PropsWithChildren> = ({ children }) => {
     );
     if (isContainer) {
       dragOverTimeout.current = setTimeout(() => {
-        dragDispatch({ action: "addPeek", id: dragState.destinationId! });
+        startTransition(() => {
+          dragDispatch({ action: "addPeek", id: dragState.destinationId! });
+        });
       }, 700);
     }
     return () => clearTimeout(dragOverTimeout.current);
@@ -305,7 +312,7 @@ export const DragProvider: FC<React.PropsWithChildren> = ({ children }) => {
       onDragOver,
       onDrop,
     }),
-    [onDragStart, onDragEnd, onDragLeave, onDragOver, onDrop]
+    [onDragStart, onDragEnd, onDragLeave, onDragOver, onDrop],
   );
 
   const dragContextState = useMemo<DragContextProps>(
@@ -318,10 +325,12 @@ export const DragProvider: FC<React.PropsWithChildren> = ({ children }) => {
         style: indicator,
       },
     }),
-    [dragState, sources, dragSurfaceHandlers, indicator]
+    [dragState, sources, dragSurfaceHandlers, indicator],
   );
 
   return (
-    <DragContext.Provider value={dragContextState}>{children}</DragContext.Provider>
+    <DragContext.Provider value={dragContextState}>
+      {children}
+    </DragContext.Provider>
   );
 };

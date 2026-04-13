@@ -4,7 +4,7 @@ Bugs:
   ✔ Context menu items missing for bookmarks @done(25-03-03 17:49)
   ✔ Remove orphaned native right click code @done(26-04-06 08:17)
   ☐ Peeking not working
-  ☐ Unable to just drop back onto previous space
+  ✔ Unable to just drop back onto previous space @done(26-04-13 08:29)
   ✔ Unable to paste folder copied from bookmarks bar @done(25-04-05 18:51)
   ✔ Animation lag on height toggle. Need to disable transition when not actively hiding. @done(25-03-22 13:50)
   ☐ Unable to paste folder from homebooks to bookmarks bar

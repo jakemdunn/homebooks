@@ -27,14 +27,14 @@ type DataTransferTypes =
   | undefined;
 
 export const getEventData = (
-  event: React.DragEvent<HTMLElement> | React.MouseEvent<HTMLElement>
+  event: React.DragEvent<HTMLElement> | React.MouseEvent<HTMLElement>,
 ) => {
   let target = (event.target as HTMLElement | undefined)?.closest(
-    "[data-drag-id]"
+    "[data-drag-id]",
   ) as HTMLElement | undefined;
   if (!target) {
     const wrapper = (event.target as HTMLElement).closest(
-      "[data-grid-container]"
+      "[data-grid-container]",
     );
     if (!wrapper) return {};
     const wrapperBounds = wrapper.getBoundingClientRect();
@@ -58,14 +58,14 @@ export const getEventData = (
 
 export const useGetEventData = () => {
   const eventData = useRef<ReturnType<typeof getEventData> | undefined>(
-    undefined
+    undefined,
   );
   const trackedGetEventData = useCallback<typeof getEventData>(
     (...params: Parameters<typeof getEventData>) => {
       eventData.current = getEventData(...params);
       return eventData.current;
     },
-    []
+    [],
   );
   return { eventData, getEventData: trackedGetEventData };
 };
@@ -96,7 +96,7 @@ const processBookmarkMove = async (
   data: Exclude<DataTransferTypes, undefined>,
   id: string,
   target: Element,
-  position: DragPosition
+  position: DragPosition,
 ) => {
   const destinationNode = (await browser.bookmarks.get(id))[0];
   const sourceNodes =
@@ -109,7 +109,7 @@ const processBookmarkMove = async (
     props: Partial<
       | Parameters<typeof browser.bookmarks.move>[1]
       | Parameters<typeof browser.bookmarks.create>[0]
-    >
+    >,
   ) => {
     if ("type" in node && node.type === "bookmark") {
       await browser.bookmarks.move(node.source.id, props);
@@ -139,7 +139,7 @@ const processBookmarkMove = async (
   const containerBounds = container.getBoundingClientRect();
   const columns = Math.round(containerBounds.width / targetBounds.width);
   const columnIndex = Math.round(
-    (targetBounds.left - containerBounds.left) / targetBounds.width
+    (targetBounds.left - containerBounds.left) / targetBounds.width,
   );
 
   const getTargetIndex: Record<DragPosition, () => number> = {
@@ -178,7 +178,7 @@ export const useParseDragId = (id: DragId) =>
   useMemo(() => parseDragId(id), [id]);
 export const processDataTransfer = async (
   event: React.DragEvent<HTMLElement>,
-  position: DragPosition
+  position: DragPosition,
 ) => {
   const { id: dragId, target } = getEventData(event);
   const data = parseDataTransfer(event.dataTransfer);
@@ -208,11 +208,11 @@ export type DataTransferSource = {
 );
 export const getSource = async (
   dragId: DragId,
-  traverseFolders = false
+  traverseFolders = false,
 ): Promise<DataTransferSource | DataTransferSource[]> => {
   const [type, id] = parseDragId(dragId);
   const parseBookmark = (
-    node: browser.Bookmarks.BookmarkTreeNode
+    node: browser.Bookmarks.BookmarkTreeNode,
   ): DataTransferSource[] => {
     if (node.type === "folder" && traverseFolders) {
       return node.children?.map((child) => parseBookmark(child)).flat() ?? [];
@@ -254,7 +254,7 @@ export const getSource = async (
 
 export const getSources = async (
   sourceIds: DragId[],
-  traverseFolders = false
+  traverseFolders = false,
 ) => {
   const sourcePromises: Promise<DataTransferSource | DataTransferSource[]>[] =
     [];
@@ -269,11 +269,11 @@ export const getSources = async (
 };
 
 export const useDataTransferFromNode = (
-  node: Bookmarks.BookmarkTreeNode
+  node: Bookmarks.BookmarkTreeNode,
 ): [DataTransferSource | DataTransferSource[], DragId] => {
   const dragId = useMemo<DragId>(
     () => `${node.type === "bookmark" ? "bookmark" : "folder"}-${node.id}`,
-    [node.id, node.type]
+    [node.id, node.type],
   );
   const source = useMemo<DataTransferSource | DataTransferSource[]>(
     () =>
@@ -285,14 +285,14 @@ export const useDataTransferFromNode = (
             type: "bookmark",
             source: child,
           })) ?? []),
-    [node]
+    [node],
   );
   return [source, dragId];
 };
 
 export const useSetDataTransfer = (
   source: DataTransferSource | DataTransferSource[],
-  sourceId: DragId
+  sourceId: DragId,
 ) => {
   const dragContext = useDragContext();
 
@@ -308,23 +308,23 @@ export const useSetDataTransfer = (
       event.dataTransfer.dropEffect = "move";
       event.dataTransfer.setData(
         DATA_TYPE_KEYS.sources,
-        JSON.stringify(sourceIds)
+        JSON.stringify(sourceIds),
       );
       event.dataTransfer.setData(
         DATA_TYPE_KEYS.urls,
-        sources.map(({ url, title }) => `${url}\n${title}`).join("\n")
+        sources.map(({ url, title }) => `${url}\n${title}`).join("\n"),
       );
       event.dataTransfer.setData(
         DATA_TYPE_KEYS.html,
         sources
           .map(({ url, title }) => `<A HREF="${url}">${title}</A>`)
-          .join("\n")
+          .join("\n"),
       );
       event.dataTransfer.setData(
         DATA_TYPE_KEYS.plain,
-        sources.map(({ url }) => url).join(", ")
+        sources.map(({ url }) => url).join(", "),
       );
     },
-    [dragContext.sourceIds, dragContext.sources, source, sourceId]
+    [dragContext.sourceIds, dragContext.sources, source, sourceId],
   );
 };

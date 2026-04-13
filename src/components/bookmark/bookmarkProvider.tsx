@@ -1,21 +1,23 @@
 import {
   FC,
   PropsWithChildren,
-  startTransition,
   useCallback,
   useEffect,
   useMemo,
   useState,
+  useTransition,
 } from "react";
 import browser from "webextension-polyfill";
 import { BookmarkState, BookmarkContext } from "./bookmarkContext";
 import { useDragContext } from "../drag/dragContext";
+import { parseDragId } from "../drag/dragProvider.util";
 import { useSettingsStorage } from "../../util/storage.types";
 import {
   collectBookmarkSearchTargets,
   useFilterBookmarksByQuery,
 } from "./bookmarkSearch";
 import { useStorage } from "../../util/useStorage";
+import equal from "fast-deep-equal";
 
 function collectFolderIds(
   nodes: browser.Bookmarks.BookmarkTreeNode[] | undefined,
@@ -91,11 +93,18 @@ export const BookmarkProvider: FC<PropsWithChildren> = (props) => {
     setSearchPeekedIds([...searchFolderIdsToExpand]);
   }, [searchQuery, searchFolderIdsToExpand]);
 
+  const [, startTransition] = useTransition();
+
   useEffect(() => {
     const updateBookmarks = async () => {
       if (!settings?.rootFolder) return;
       const tree = await browser.bookmarks.getSubTree(settings.rootFolder);
-      setBookmarks(tree[0].children);
+      startTransition(() => {
+        setBookmarks((current) => {
+          if (equal(current, tree[0].children)) return current;
+          return tree[0].children;
+        });
+      });
     };
     updateBookmarks();
 
@@ -133,7 +142,12 @@ export const BookmarkProvider: FC<PropsWithChildren> = (props) => {
 
   const expanded = useMemo(
     () => [
-      ...new Set<string>([...expandedSource, ...dragState.peekedIds]).values(),
+      ...new Set<string>([
+        ...expandedSource,
+        ...Array.from(dragState.peekedIds).map(
+          (peekedId) => parseDragId(peekedId)[1],
+        ),
+      ]).values(),
     ],
     [dragState.peekedIds, expandedSource],
   );
