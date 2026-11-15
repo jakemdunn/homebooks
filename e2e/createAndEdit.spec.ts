@@ -21,9 +21,8 @@ const fillAndSave = async (
   form: ReturnType<typeof dialog>,
   { parent, fields }: CreateForm,
 ) => {
-  // The form resets its fields once its default parent loads, wiping
-  // anything typed before that (#48). Wait until the parent shows as chosen,
-  // which is when that reset has happened.
+  // Wait until the default parent shows as chosen, so the form is fully
+  // loaded before typing.
   await expect(
     form.getByRole("button", { name: parent, exact: true, pressed: true }),
   ).toBeVisible();
