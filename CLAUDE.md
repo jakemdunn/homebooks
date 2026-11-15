@@ -11,3 +11,7 @@ Default five-role vocabulary: `needs-triage`, `needs-info`, `ready-for-agent`, `
 ### Domain docs
 
 Single-context: one root `GLOSSARY.md` plus `docs/adr/`. See `docs/agents/domain.md`.
+
+## Git conventions
+
+- Don't add a `Co-Authored-By` trailer (or any other AI attribution line) to commit messages or PR descriptions.
