@@ -195,7 +195,7 @@ test.describe("at 1280×800, six columns", () => {
   });
 
   test(
-    "an empty Folder can be dragged",
+    "an empty Folder can be dragged (#38)",
     async ({ openHomebooks }) => {
       const homebooks = await openHomebooks([
         { title: "Folder A", children: [] },

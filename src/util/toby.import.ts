@@ -1,7 +1,7 @@
 import { useCallback, useState } from "react";
 import browser from "webextension-polyfill";
 import { parseTobyExport, type TobyImportNode } from "./tobyExport";
-import { useRootFolder } from "./useRootFolder";
+import { useRootFolder } from "./rootFolder.context";
 
 const countNodes = (nodes: TobyImportNode[]): number =>
   nodes.reduce(
@@ -27,19 +27,22 @@ const createNodes = async (
   }
 };
 
+const ROOT_FOLDER_RESOLVING =
+  "Can't import from Toby yet: the Root Folder is still loading. Try again.";
+
 export const useTobyImport = () => {
   const rootFolder = useRootFolder();
   const [progress, setProgress] = useState(0);
   const parseToby = useCallback(
     async (tobyExport: object) => {
-      if (!rootFolder) throw new Error("Root folder not selected.");
+      if (!rootFolder) throw new Error(ROOT_FOLDER_RESOLVING);
       return await parseTobyExport(tobyExport);
     },
     [rootFolder],
   );
   const importToby = useCallback(
     async (imports: TobyImportNode[]) => {
-      if (!rootFolder) throw new Error("Root folder not selected.");
+      if (!rootFolder) throw new Error(ROOT_FOLDER_RESOLVING);
 
       const totalOps = countNodes(imports);
       if (totalOps === 0) {

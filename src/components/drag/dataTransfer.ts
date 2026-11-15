@@ -5,6 +5,8 @@ export const DATA_TYPE_KEYS = {
   urls: "text/x-moz-url",
   html: "text/html",
   plain: "text/plain",
+  /** Chromium's link format, read on drop but never written. */
+  uriList: "text/uri-list",
 } as const;
 
 export type DataTransferTypes =
@@ -18,42 +20,54 @@ export type DataTransferTypes =
     }
   | undefined;
 
-export const parseDataTransfer = (
-  dataTransfer: Pick<DataTransfer, "types" | "getData">,
-): DataTransferTypes => {
-  if (dataTransfer.types.includes(DATA_TYPE_KEYS.sources)) {
-    const json = dataTransfer.getData(DATA_TYPE_KEYS.sources);
-    try {
-      return {
-        type: "dragIds",
-        data: JSON.parse(json) as DragId[],
-      };
-    } catch (error) {
-      console.error(error);
-    }
-  }
-  if (dataTransfer.types.includes(DATA_TYPE_KEYS.urls)) {
-    const urls = dataTransfer.getData(DATA_TYPE_KEYS.urls);
-    const pairs = urls.matchAll(/(.*)\n(.*)\n?/gm);
+type DropData = Pick<DataTransfer, "types" | "getData">;
+
+/**
+ * What a drop carries, from the first format present: Homebooks' own Drag
+ * Source ids, then Firefox's link list, then Chromium's.
+ */
+export const parseDataTransfer = (dataTransfer: DropData): DataTransferTypes =>
+  readDragIds(dataTransfer) ??
+  readMozUrls(dataTransfer) ??
+  readUriList(dataTransfer);
+
+const readDragIds = (dataTransfer: DropData): DataTransferTypes => {
+  if (!dataTransfer.types.includes(DATA_TYPE_KEYS.sources)) return;
+  try {
     return {
-      type: "urls",
-      data: [...pairs].map(([, url, title]) => ({ url, title })),
+      type: "dragIds",
+      data: JSON.parse(
+        dataTransfer.getData(DATA_TYPE_KEYS.sources),
+      ) as DragId[],
     };
-  }
-  if (dataTransfer.types.includes(URI_LIST)) {
-    const titles = linkTitles(dataTransfer.getData(DATA_TYPE_KEYS.html));
-    return {
-      type: "urls",
-      data: parseUriList(dataTransfer.getData(URI_LIST)).map((url) => ({
-        url,
-        title: titles.get(url) || url,
-      })),
-    };
+  } catch (error) {
+    console.error(error);
   }
 };
 
-/** Chromium's link format, read on drop but never written. */
-const URI_LIST = "text/uri-list";
+/** Firefox's text/x-moz-url: a URL line, then its title line. */
+const readMozUrls = (dataTransfer: DropData): DataTransferTypes => {
+  if (!dataTransfer.types.includes(DATA_TYPE_KEYS.urls)) return;
+  const pairs = dataTransfer
+    .getData(DATA_TYPE_KEYS.urls)
+    .matchAll(/(.*)\n(.*)\n?/gm);
+  return {
+    type: "urls",
+    data: [...pairs].map(([, url, title]) => ({ url, title })),
+  };
+};
+
+/** Chromium's text/uri-list, titled from the drop's text/html links. */
+const readUriList = (dataTransfer: DropData): DataTransferTypes => {
+  if (!dataTransfer.types.includes(DATA_TYPE_KEYS.uriList)) return;
+  const titles = linkTitles(dataTransfer.getData(DATA_TYPE_KEYS.html));
+  return {
+    type: "urls",
+    data: parseUriList(dataTransfer.getData(DATA_TYPE_KEYS.uriList)).map(
+      (url) => ({ url, title: titles.get(url) || url }),
+    ),
+  };
+};
 
 /** URLs in a text/uri-list (RFC 2483): one per line, `#` lines are comments. */
 const parseUriList = (uriList: string) =>

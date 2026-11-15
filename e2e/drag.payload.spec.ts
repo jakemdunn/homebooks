@@ -101,6 +101,24 @@ test("an empty Folder's payload holds only its Drag Source id", async ({
   });
 });
 
+test("a Folder holding only Folders has no links in its payload", async ({
+  openHomebooks,
+}) => {
+  const { page, ids, item } = await openHomebooks([
+    { title: "Outer", children: [{ title: "Inner", children: [] }] },
+  ]);
+  const { zone, recorded } = await addDropRecorder(page);
+
+  await drag(item("Outer").locator("header").first(), {
+    onto: zone,
+    at: "in",
+  });
+
+  await expect.poll(recorded).toEqual({
+    "text/home-books-sources": JSON.stringify([`folder-${ids["Outer"]}`]),
+  });
+});
+
 test("a Tab's payload", async ({ openHomebooks }) => {
   const { page, openTabs, tab } = await openHomebooks([
     { title: "B1", url: "https://b1.example/" },

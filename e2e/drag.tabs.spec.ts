@@ -112,29 +112,30 @@ test.describe("a Window dropped on bookmarks", () => {
     await expect(homebooks.page).toHaveURL(/homepage\.html$/);
   });
 
-  test(
-    "skips browser-internal tabs the windows column hides",
-    async ({ openHomebooks, serviceWorker }) => {
-      const homebooks = await openHomebooks([
-        { title: "Folder A", children: [] },
-      ]);
-      const { windowId, tabIds } = await homebooks.openTabs(["Tab 1"]);
-      await serviceWorker.evaluate(
-        (windowId) => chrome.tabs.create({ windowId, url: "about:blank" }),
-        windowId,
-      );
+  test("skips browser-internal tabs the windows column hides (#39)", async ({
+    openHomebooks,
+    serviceWorker,
+  }) => {
+    const homebooks = await openHomebooks([
+      { title: "Folder A", children: [] },
+    ]);
+    const { windowId, tabIds } = await homebooks.openTabs(["Tab 1"]);
+    const hiddenTabId = await serviceWorker.evaluate(
+      async (windowId) =>
+        (await chrome.tabs.create({ windowId, url: "about:blank" })).id!,
+      windowId,
+    );
 
-      await drag(homebooks.windowHeader(windowId), {
-        onto: homebooks.item("Folder A"),
-        at: "in",
-      });
+    await drag(homebooks.windowHeader(windowId), {
+      onto: homebooks.item("Folder A"),
+      at: "in",
+    });
 
-      await expect.poll(homebooks.openTabIds).not.toContain(tabIds["Tab 1"]);
-      await expectUnchanged(homebooks.bookmarkTree, [
-        { "Folder A": ["Tab 1"] },
-      ]);
-    },
-  );
+    await expect.poll(homebooks.openTabIds).not.toContain(tabIds["Tab 1"]);
+    await expectUnchanged(homebooks.bookmarkTree, [{ "Folder A": ["Tab 1"] }]);
+    // Neither bookmarked nor closed.
+    expect(await homebooks.openTabIds()).toContain(hiddenTabId);
+  });
 });
 
 /** Bookmarks and open tabs together, so one check covers both. */

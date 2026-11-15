@@ -3,7 +3,7 @@ import { VscCollapseAll, VscExpandAll } from "react-icons/vsc";
 import { RiCloseCircleFill, RiFolderAddLine } from "react-icons/ri";
 import { FaSearch } from "react-icons/fa";
 import { useBookmarkContext } from "./bookmarkContext";
-import { useRootFolder } from "../../util/useRootFolder";
+import { useRootFolder } from "../../util/rootFolder.context";
 import { useModalsContext } from "../modals/modals.context";
 import {
   actionButtonStyle,

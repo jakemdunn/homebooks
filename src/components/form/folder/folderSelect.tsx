@@ -13,7 +13,8 @@ import {
   useSetDataTransfer,
 } from "../../drag/dragProvider.util";
 import { HeightToggle } from "../../heightToggle/heightToggle";
-import { useRootFolder } from "../../../util/useRootFolder";
+import { useRootFolder } from "../../../util/rootFolder.context";
+import { getRootFolderSubTree } from "../../../util/rootFolder.bookmarks";
 
 type FolderOption = {
   children?: FolderOption[];
@@ -164,13 +165,16 @@ const AutoExpandToSelection: FC<{
 
 type FolderSelectFieldProps = FieldAttributes<unknown> & {
   underHomebooksRoot?: boolean;
+  /** The folder shown as chosen while the field's value isn't one of the options. */
+  fallbackValue?: string;
 };
 
 export const FolderSelect: FC<FolderSelectFieldProps> = ({
   underHomebooksRoot = false,
+  fallbackValue,
   ...fieldProps
 }) => {
-  const rootFolderId = useRootFolder();
+  const rootFolder = useRootFolder();
   const [options, setOptions] = useState<FolderOption[]>([]);
   const [expanded, setExpanded] = useState<string[]>([]);
   const toggleExpanded = useCallback((id: string) => {
@@ -218,16 +222,12 @@ export const FolderSelect: FC<FolderSelectFieldProps> = ({
     const getBookmarks = async () => {
       let tree: Bookmarks.BookmarkTreeNode[];
       if (underHomebooksRoot) {
-        if (!rootFolderId) {
+        if (!rootFolder) {
           setOptions([]);
           return;
         }
-        // Empty when the Root Folder was just deleted: useRootFolder then
-        // falls back, and this runs again for the new Root Folder.
-        const sub = await bookmarks
-          .getSubTree(rootFolderId)
-          .catch(() => []);
-        tree = sub[0] ? [sub[0]] : [];
+        const sub = await getRootFolderSubTree(rootFolder);
+        tree = sub ? [sub] : [];
       } else {
         tree = await bookmarks.getTree();
       }
@@ -245,28 +245,37 @@ export const FolderSelect: FC<FolderSelectFieldProps> = ({
       bookmarks.onMoved.removeListener(getBookmarks);
       bookmarks.onRemoved.removeListener(getBookmarks);
     };
-  }, [underHomebooksRoot, rootFolderId]);
+  }, [underHomebooksRoot, rootFolder]);
 
   return (
     <div className={optionsStyle} data-grid-container>
       <Field {...fieldProps}>
-        {({ field }: FieldProps<unknown>) => (
-          <>
-            <AutoExpandToSelection
-              options={options}
-              selectedId={field.value}
-              setExpanded={setExpanded}
-            />
-            <FolderSelectOptions
-              expanded={expanded}
-              field={field}
-              toggleExpanded={toggleExpanded}
-              depth={0}
-            >
-              {options}
-            </FolderSelectOptions>
-          </>
-        )}
+        {({ field: storedField }: FieldProps<unknown>) => {
+          const isOption = options.some(({ nodeIds }) =>
+            nodeIds.has(storedField.value as string),
+          );
+          const field =
+            isOption || fallbackValue === undefined
+              ? storedField
+              : { ...storedField, value: fallbackValue };
+          return (
+            <>
+              <AutoExpandToSelection
+                options={options}
+                selectedId={field.value}
+                setExpanded={setExpanded}
+              />
+              <FolderSelectOptions
+                expanded={expanded}
+                field={field}
+                toggleExpanded={toggleExpanded}
+                depth={0}
+              >
+                {options}
+              </FolderSelectOptions>
+            </>
+          );
+        }}
       </Field>
     </div>
   );

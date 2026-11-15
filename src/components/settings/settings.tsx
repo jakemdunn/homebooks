@@ -1,4 +1,4 @@
-import { FC, PropsWithChildren, useCallback, useEffect, useMemo } from "react";
+import { FC, PropsWithChildren, useCallback, useEffect } from "react";
 import { RiSettings4Fill } from "react-icons/ri";
 import HomeBooksIcon from "/icon/homebooks.svg?url";
 import {
@@ -25,7 +25,7 @@ import {
 import { useStorage } from "../../util/useStorage";
 import { SETTINGS_PANEL_VISIBLE } from "./settings.util";
 import { useTobyImport } from "../../util/toby.import";
-import { useRootFolder } from "../../util/useRootFolder";
+import { useRootFolder } from "../../util/rootFolder.context";
 import equal from "fast-deep-equal";
 
 const SettingsUpdate: FC = () => {
@@ -103,17 +103,7 @@ export const Settings: FC<PropsWithChildren> = ({ children }) => {
   }, [open, setOpen]);
 
   const [settingsData, setSettingsData] = useSettingsStorage();
-  // The form shows the Root Folder in use, which falls back to "Other
-  // Bookmarks" when the stored one doesn't exist. It saves rootFolder only
-  // when the user picks one, so the fallback is never written.
   const rootFolder = useRootFolder();
-  const formValues = useMemo(
-    () => ({
-      ...settingsData,
-      rootFolder: rootFolder ?? settingsData.rootFolder,
-    }),
-    [settingsData, rootFolder],
-  );
   const i18n = useI18n();
 
   return (
@@ -139,19 +129,9 @@ export const Settings: FC<PropsWithChildren> = ({ children }) => {
         <div className={settingsContentStyle}>
           <h2 className={settingsHeaderStyle}>Settings</h2>
           <Formik<SettingsData>
-            initialValues={formValues}
+            initialValues={settingsData}
             enableReinitialize
-            onSubmit={(values) =>
-              setSettingsData(
-                normalizeSettings({
-                  ...values,
-                  rootFolder:
-                    values.rootFolder === formValues.rootFolder
-                      ? settingsData.rootFolder
-                      : values.rootFolder,
-                }),
-              )
-            }
+            onSubmit={(values) => setSettingsData(normalizeSettings(values))}
           >
             {() => (
               <Form className={settingsFormStyle}>
@@ -175,7 +155,13 @@ export const Settings: FC<PropsWithChildren> = ({ children }) => {
                 </div>
                 <div>
                   <label htmlFor="rootFolder">{i18n("rootFolderLabel")}</label>
-                  <FolderSelect id="rootFolder" name="rootFolder" />
+                  {/* Shows the Root Folder in use while the stored one doesn't
+                      exist, and saves whichever folder the user picks. */}
+                  <FolderSelect
+                    id="rootFolder"
+                    name="rootFolder"
+                    fallbackValue={rootFolder}
+                  />
                 </div>
                 <FileInput
                   onChange={selectFile}

@@ -1,5 +1,7 @@
-/** Firefox's id for its "Other Bookmarks" folder. */
+/** Firefox's id for its Other Bookmarks folder. */
 const FIREFOX_OTHER_BOOKMARKS = "unfiled_____";
+/** Chromium's `folderType` for its Other Bookmarks folder (Chromium 134+). */
+const CHROMIUM_OTHER_BOOKMARKS_TYPE = "other";
 
 type FolderCandidate = {
   id: string;
@@ -22,7 +24,9 @@ export const chooseRootFolder = (
   if (storedFolder && !storedFolder.url) return storedFolder.id;
   return (
     rootChildren.find(({ id }) => id === FIREFOX_OTHER_BOOKMARKS)?.id ??
-    rootChildren.find(({ folderType }) => folderType === "other")?.id ??
+    rootChildren.find(
+      ({ folderType }) => folderType === CHROMIUM_OTHER_BOOKMARKS_TYPE,
+    )?.id ??
     rootChildren[1]?.id
   );
 };

@@ -4,6 +4,7 @@ import "./pages/popupGlobal.css";
 import Popup from "./pages/Popup";
 import { StorageProvider } from "./util/storage.provider";
 import { DragProvider } from "./components/drag/dragProvider";
+import { RootFolderProvider } from "./util/rootFolder.provider";
 import { installChromiumBookmarksShim } from "./util/chromiumBookmarksShim";
 
 installChromiumBookmarksShim();
@@ -11,9 +12,11 @@ installChromiumBookmarksShim();
 ReactDOM.createRoot(document.body).render(
   <React.StrictMode>
     <StorageProvider>
-      <DragProvider>
-        <Popup />
-      </DragProvider>
+      <RootFolderProvider>
+        <DragProvider>
+          <Popup />
+        </DragProvider>
+      </RootFolderProvider>
     </StorageProvider>
   </React.StrictMode>,
 );

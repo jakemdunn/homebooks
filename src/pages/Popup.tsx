@@ -5,7 +5,7 @@ import {
   type CreateItemFormValues,
 } from "../components/createItem/createItemForm";
 import { buttonPrimaryStyle } from "../components/createItem/createItemForm.css";
-import { useRootFolder } from "../util/useRootFolder";
+import { useRootFolder } from "../util/rootFolder.context";
 import { useI18n } from "../util/i18n";
 import { isExtensionOrBrowserInternalUrl } from "../util/restrictedTabUrl";
 import { openHomeBooksWithSettingsPanel } from "../util/openHomeBooksAndSettings";

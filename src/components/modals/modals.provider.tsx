@@ -11,7 +11,7 @@ import {
   ModalsContext,
   ModalsContextValue,
 } from "./modals.context";
-import { useRootFolder } from "../../util/useRootFolder";
+import { useRootFolder } from "../../util/rootFolder.context";
 
 function mergeBookmarkDefaults(
   defaults: CreateModalDefaults | undefined,

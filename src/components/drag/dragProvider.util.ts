@@ -273,21 +273,22 @@ export const useSetDataTransfer = (
         JSON.stringify(sourceIds),
       );
 
-      // An empty Folder has no links to hand other apps.
-      if (!sources.length) return;
+      // Other apps get links only: a Folder with no Bookmarks has none.
+      const links = sources.filter(({ url }) => url);
+      if (!links.length) return;
       event.dataTransfer.setData(
         DATA_TYPE_KEYS.urls,
-        sources.map(({ url, title }) => `${url}\n${title}`).join("\n"),
+        links.map(({ url, title }) => `${url}\n${title}`).join("\n"),
       );
       event.dataTransfer.setData(
         DATA_TYPE_KEYS.html,
-        sources
+        links
           .map(({ url, title }) => `<A HREF="${url}">${title}</A>`)
           .join("\n"),
       );
       event.dataTransfer.setData(
         DATA_TYPE_KEYS.plain,
-        sources.map(({ url }) => url).join(", "),
+        links.map(({ url }) => url).join(", "),
       );
     },
     [dragContext.sourceIds, dragContext.sources, source, sourceId],

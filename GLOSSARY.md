@@ -7,8 +7,12 @@ A browser new-tab page that shows the user's bookmarks alongside their open wind
 ### Items
 
 **Root Folder**:
-The bookmark folder the user chose as the top of what Homebooks shows.
+The bookmark folder at the top of what Homebooks shows: the one the user chose, or Other Bookmarks when they haven't chosen one or it no longer exists.
 _Avoid_: Home folder, base folder
+
+**Other Bookmarks**:
+The browser's own built-in folder for bookmarks outside the toolbar and menus, and the Root Folder when the user hasn't chosen one.
+_Avoid_: Unfiled bookmarks, default folder
 
 **Container**:
 An item that holds other items and can be expanded or collapsed: a Folder or a Window.

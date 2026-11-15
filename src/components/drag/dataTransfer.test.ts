@@ -71,6 +71,15 @@ describe("parseDataTransfer", () => {
   // Titles from the drop's text/html need DOMParser, which this Node
   // environment lacks; e2e/drag.external.spec.ts covers them in Chromium.
   describe("Chromium link drags (text/uri-list)", () => {
+    it("reads a single link", () => {
+      expect(
+        parseDataTransfer(payload({ "text/uri-list": "https://example.com/" })),
+      ).toEqual({
+        type: "urls",
+        data: [{ url: "https://example.com/", title: "https://example.com/" }],
+      });
+    });
+
     it("reads links, skipping comment lines, titled with their URL when there's no text/html", () => {
       expect(
         parseDataTransfer(
