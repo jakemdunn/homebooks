@@ -7,7 +7,7 @@ import reactRefresh from "eslint-plugin-react-refresh";
 
 export default tseslint.config(
   {
-    ignores: ["dist", "dist-e2e", "test-results", "playwright-report"],
+    ignores: ["dist", "dist-e2e", "test-results", "playwright-report", ".profiles"],
   },
   eslint.configs.recommended,
   reactRefresh.configs.recommended,
