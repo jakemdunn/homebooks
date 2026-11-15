@@ -110,7 +110,7 @@ describe("dragReducer", () => {
     ).toBe(state);
   });
 
-  it.fails("removes a Drag Source (#40)", () => {
+  it("removes a Drag Source", () => {
     const state = dragReducer(dragging(), {
       action: "removeSource",
       id: "bookmark-1",

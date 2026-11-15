@@ -71,7 +71,7 @@ export const dragReducer = (
       }
       const sourceIds = new Set(state.sourceIds);
       sourceIds.delete(action.id);
-      return { ...state, sourceIds: new Set(state.sourceIds) };
+      return { ...state, sourceIds };
     }
     case "removeDestination": {
       if (!state.destinationId) {
