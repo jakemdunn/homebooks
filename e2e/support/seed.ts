@@ -14,6 +14,9 @@ export type SeededRootFolder = {
   ids: Record<string, string>;
 };
 
+/** The title of the Root Folder every test seeds. */
+export const ROOT_FOLDER_TITLE = "Homebooks E2E Root";
+
 /** Bookmarks titled `titles`, each with its own example URL. */
 export const bookmarks = (...titles: string[]): SeedNode[] =>
   titles.map((title) => ({ title, url: urlFor(title) }));
@@ -30,7 +33,7 @@ export const seedRootFolder = (
   { nodes, expanded }: { nodes: SeedNode[]; expanded: string[] },
 ): Promise<SeededRootFolder> =>
   serviceWorker.evaluate(
-    async ({ nodes, expanded }) => {
+    async ({ nodes, expanded, title }) => {
       const ids: Record<string, string> = {};
       const create = async (parentId: string, node: SeedNode) => {
         const { id } = await chrome.bookmarks.create({
@@ -45,7 +48,7 @@ export const seedRootFolder = (
       // "2" is Chromium's "Other Bookmarks".
       const root = await chrome.bookmarks.create({
         parentId: "2",
-        title: "Homebooks E2E Root",
+        title,
       });
       for (const node of nodes) await create(root.id, node);
       await chrome.storage.sync.set({
@@ -57,7 +60,7 @@ export const seedRootFolder = (
       });
       return { rootId: root.id, ids };
     },
-    { nodes, expanded },
+    { nodes, expanded, title: ROOT_FOLDER_TITLE },
   );
 
 /** The Root Folder's contents as titles, read through the real API. */

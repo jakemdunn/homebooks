@@ -91,6 +91,8 @@ const FolderSelectOption: FC<FolderOption & FolderSelectProps> = ({
         {!!children?.length && (
           <button
             type="button"
+            aria-label={`${title} subfolders`}
+            aria-expanded={isExpanded}
             onClick={(event) => {
               toggleExpanded(node.id);
               event.stopPropagation();
@@ -102,6 +104,7 @@ const FolderSelectOption: FC<FolderOption & FolderSelectProps> = ({
         <button
           type="button"
           className={optionStyle}
+          aria-pressed={node.id === field.value}
           onBlur={field.onBlur(field.name)}
           onClick={() => {
             field.onChange(field.name)(node.id);

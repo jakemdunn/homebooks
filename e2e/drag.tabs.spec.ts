@@ -57,7 +57,7 @@ test.describe("a Tab dropped on bookmarks becomes a bookmark and closes", () => 
                 title === "D" ? destination : title,
               );
         await expectRootFolder(homebooks, expected);
-        expect((await homebooks.bookmarkUrls())["Tab A"]).toBe(tabUrl("Tab A"));
+        expect(await homebooks.bookmarkUrl("Tab A")).toBe(tabUrl("Tab A"));
         await expect.poll(homebooks.openTabIds).not.toContain(tabIds["Tab A"]);
       });
 });

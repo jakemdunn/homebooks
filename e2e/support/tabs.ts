@@ -43,3 +43,31 @@ export const readOpenTabIds = (serviceWorker: Worker) =>
   serviceWorker.evaluate(async () =>
     (await chrome.tabs.query({})).map((tab) => tab.id!),
   );
+
+/**
+ * Each open window's tab URLs, in tab order, keyed by window id. A tab still
+ * loading reports the URL it's loading.
+ */
+export const readOpenTabUrls = (serviceWorker: Worker) =>
+  serviceWorker.evaluate(async () => {
+    const windows = await chrome.windows.getAll({ populate: true });
+    return Object.fromEntries(
+      windows.map((window) => [
+        window.id!,
+        (window.tabs ?? []).map((tab) => tab.pendingUrl || tab.url || ""),
+      ]),
+    );
+  });
+
+/** Ids of every open window. */
+export const readWindowIds = async (serviceWorker: Worker) =>
+  Object.keys(await readOpenTabUrls(serviceWorker));
+
+/** Tab URLs of each window opened since `windowIdsBefore` was read. */
+export const readNewWindowsTabUrls = async (
+  serviceWorker: Worker,
+  windowIdsBefore: string[],
+) =>
+  Object.entries(await readOpenTabUrls(serviceWorker))
+    .filter(([id]) => !windowIdsBefore.includes(id))
+    .map(([, urls]) => urls);

@@ -36,6 +36,7 @@ export const FloatingMenuButton: FC<
   return (
     <button
       type="button"
+      aria-label="Item menu"
       onClick={(event) => {
         event.stopPropagation();
         dispatch({

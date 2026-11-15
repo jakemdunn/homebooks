@@ -117,6 +117,7 @@ export const Settings: FC<PropsWithChildren> = ({ children }) => {
             className={settingsButtonStyle}
             onClick={() => setOpen(!open)}
             data-settings
+            aria-label="Settings"
           >
             <RiSettings4Fill />
           </button>
