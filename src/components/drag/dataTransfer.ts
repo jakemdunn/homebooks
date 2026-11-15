@@ -40,4 +40,38 @@ export const parseDataTransfer = (
       data: [...pairs].map(([, url, title]) => ({ url, title })),
     };
   }
+  if (dataTransfer.types.includes(URI_LIST)) {
+    const titles = linkTitles(dataTransfer.getData(DATA_TYPE_KEYS.html));
+    return {
+      type: "urls",
+      data: parseUriList(dataTransfer.getData(URI_LIST)).map((url) => ({
+        url,
+        title: titles.get(url) || url,
+      })),
+    };
+  }
+};
+
+/** Chromium's link format, read on drop but never written. */
+const URI_LIST = "text/uri-list";
+
+/** URLs in a text/uri-list (RFC 2483): one per line, `#` lines are comments. */
+const parseUriList = (uriList: string) =>
+  uriList
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter((line) => line && !line.startsWith("#"));
+
+/** Each link's text in a drop's text/html, by its href. */
+const linkTitles = (html: string) => {
+  if (!html) return new Map<string, string>();
+  const anchors = new DOMParser()
+    .parseFromString(html, "text/html")
+    .querySelectorAll("a[href]");
+  return new Map(
+    [...anchors].map((anchor) => [
+      anchor.getAttribute("href")!,
+      anchor.textContent?.trim() ?? "",
+    ]),
+  );
 };
