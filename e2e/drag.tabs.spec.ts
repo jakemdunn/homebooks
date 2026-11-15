@@ -112,8 +112,8 @@ test.describe("a Window dropped on bookmarks", () => {
     await expect(homebooks.page).toHaveURL(/homepage\.html$/);
   });
 
-  test.fail(
-    "skips browser-internal tabs the windows column hides (#39)",
+  test(
+    "skips browser-internal tabs the windows column hides",
     async ({ openHomebooks, serviceWorker }) => {
       const homebooks = await openHomebooks([
         { title: "Folder A", children: [] },

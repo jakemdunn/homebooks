@@ -7,10 +7,10 @@ import {
   type DataTransferTypes,
 } from "./dataTransfer";
 import type { DragId, DragPosition, DragType } from "./dragTypes";
+import { isTabUrlShownInTabsColumn } from "../../util/restrictedTabUrl";
 
 export type { DragId, DragPosition, DragType };
 
-export const extensionURL = browser.runtime.getURL("");
 
 export const getEventData = (
   event: React.DragEvent<HTMLElement> | React.MouseEvent<HTMLElement>,
@@ -210,7 +210,7 @@ export const getSource = async (
             source: child,
             type: "tab",
           }))
-          .filter((tab) => !tab.url?.includes(extensionURL)) ?? []
+          .filter((tab) => isTabUrlShownInTabsColumn(tab.url)) ?? []
       );
     }
   }

@@ -1,8 +1,8 @@
 /**
  * True when the tab URL is an extension page or built-in browser UI.
- * Used by the toolbar popup (no bookmark form) and the tabs column: those
- * tabs are omitted from the draggable list, and windows with only such tabs
- * show an empty state.
+ * Used by the toolbar popup (no bookmark form), the tabs column, and Window
+ * drops: those tabs are omitted from the draggable list, windows with only
+ * such tabs show an empty state, and dropping a Window skips them.
  *
  * This replaces the older tabs filter (`!url.includes(extensionURL) &&
  * !/^about:/`), which missed e.g. `chrome:`, `edge:`, `devtools:`, and
