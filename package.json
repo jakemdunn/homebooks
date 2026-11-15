@@ -13,7 +13,7 @@
     "test": "vitest run",
     "build:e2e": "TARGET=chrome OUT_DIR=dist-e2e vite build",
     "test:e2e": "yarn build:e2e && playwright test",
-    "typecheck": "tsc --noEmit -p . && tsc --noEmit -p e2e"
+    "typecheck": "tsc --noEmit -p . && tsc --noEmit -p e2e && tsc --noEmit -p build"
   },
   "dependencies": {
     "@floating-ui/react": "^0.27.5",

@@ -1,45 +1,84 @@
+import { mkdirSync } from "node:fs";
 import path from "node:path";
 import type { PluginOptions } from "vite-plugin-web-extension";
 
-export type DevTarget = "firefox" | "chrome";
+/** Browsers the manifest has `{{…}}` keys for, as `TARGET` names them. */
+const DEV_TARGETS = ["firefox", "chrome"] as const;
+export type DevTarget = (typeof DEV_TARGETS)[number];
+
+/** Where `yarn dev` keeps each browser's persistent profile. */
+const PROFILES_FOLDER = ".profiles";
 
 type WebExtConfig = NonNullable<PluginOptions["webExtConfig"]>;
 
+const isDevTarget = (value: string): value is DevTarget =>
+  (DEV_TARGETS as readonly string[]).includes(value);
+
+/** Reads `TARGET`, defaulting to Firefox. */
+export const readDevTarget = (value: string | undefined): DevTarget => {
+  const target = value || "firefox";
+  if (!isDevTarget(target)) {
+    throw new Error(
+      `Unknown TARGET "${target}". Use one of: ${DEV_TARGETS.join(", ")}.`,
+    );
+  }
+  return target;
+};
+
+/** The browser web-ext runs for a target. */
+export const webExtTarget = (target: DevTarget) =>
+  target === "firefox" ? "firefox-desktop" : "chromium";
+
 /**
- * How `yarn dev` launches each browser, with a persistent profile under
- * `.profiles/` so dev bookmarks survive a restart. (Each target's build
- * output is set by `OUT_DIR` in its `dev:*` script.)
- *
- * Chrome runs Playwright's Chrome for Testing: branded Google Chrome ignores
- * `--load-extension` since Chrome 137, so it can't load the dev build.
- * `CHROMIUM_BINARY` points at another Chromium instead.
+ * How `yarn dev` launches a browser, with a persistent profile so dev
+ * bookmarks survive a restart. (Each target's build output is set by
+ * `OUT_DIR` in its `dev:*` script.) `chromiumBinary` is only called for
+ * Chrome.
  */
-export const devWebExtConfig = ({
+export const devWebExtConfig = async ({
   target,
   root,
-  env,
-  playwrightChromium,
+  chromiumBinary,
 }: {
   target: DevTarget;
   root: string;
-  env: Record<string, string | undefined>;
-  playwrightChromium: () => string;
-}): WebExtConfig => {
-  const profile = path.join(root, ".profiles", target);
+  chromiumBinary: () => Promise<string>;
+}): Promise<WebExtConfig> => {
+  const profile = path.join(root, PROFILES_FOLDER, target);
   const persistentProfile = {
     profileCreateIfMissing: true,
     keepProfileChanges: true,
   };
   return target === "firefox"
     ? {
-        target: "firefox-desktop",
+        target: webExtTarget(target),
         firefoxProfile: profile,
         ...persistentProfile,
       }
     : {
-        target: "chromium",
-        chromiumBinary: env.CHROMIUM_BINARY ?? playwrightChromium(),
+        target: webExtTarget(target),
+        chromiumBinary: await chromiumBinary(),
         chromiumProfile: profile,
         ...persistentProfile,
       };
+};
+
+/** web-ext creates a missing profile folder, but not its parent. */
+export const createProfilesFolder = (root: string) =>
+  mkdirSync(path.join(root, PROFILES_FOLDER), { recursive: true });
+
+/**
+ * The Chromium dev runs: `CHROMIUM_BINARY` when set, otherwise Playwright's
+ * Chrome for Testing. Branded Google Chrome ignores `--load-extension` since
+ * Chrome 137, so it can't load the dev build.
+ */
+export const chromiumBinaryFrom = async (
+  env: { CHROMIUM_BINARY?: string },
+  playwrightChromium: () => Promise<string>,
+) => env.CHROMIUM_BINARY || (await playwrightChromium());
+
+/** Playwright's Chrome for Testing, imported only when Chrome needs it. */
+export const playwrightChromium = async () => {
+  const { chromium } = await import("@playwright/test");
+  return chromium.executablePath();
 };

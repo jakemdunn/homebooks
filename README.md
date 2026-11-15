@@ -15,5 +15,3 @@ Chrome runs Playwright's Chrome for Testing, since branded Google Chrome can't l
 ```sh
 CHROMIUM_BINARY=/path/to/chromium yarn dev:chrome
 ```
-
-Tests: `yarn test` (unit), `yarn test:e2e` (end to end in Chromium).

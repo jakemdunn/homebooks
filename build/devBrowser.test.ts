@@ -1,21 +1,38 @@
 import { describe, expect, it } from "vitest";
-import { devWebExtConfig } from "./devBrowser";
+import {
+  chromiumBinaryFrom,
+  devWebExtConfig,
+  readDevTarget,
+  type DevTarget,
+} from "./devBrowser";
 
 const PLAYWRIGHT_CHROMIUM = "/cache/ms-playwright/chrome-for-testing";
-const options = (
-  target: "firefox" | "chrome",
-  env: Record<string, string | undefined> = {},
-) =>
-  devWebExtConfig({
-    target,
-    root: "/repo",
-    env,
-    playwrightChromium: () => PLAYWRIGHT_CHROMIUM,
+
+const configFor = (
+  target: DevTarget,
+  chromiumBinary = async () => PLAYWRIGHT_CHROMIUM,
+) => devWebExtConfig({ target, root: "/repo", chromiumBinary });
+
+describe("readDevTarget", () => {
+  it("defaults to Firefox", () => {
+    expect(readDevTarget(undefined)).toBe("firefox");
+    expect(readDevTarget("")).toBe("firefox");
   });
 
+  it("accepts Chrome", () => {
+    expect(readDevTarget("chrome")).toBe("chrome");
+  });
+
+  it("rejects a target with no manifest keys, such as chromium", () => {
+    expect(() => readDevTarget("chromium")).toThrow(
+      'Unknown TARGET "chromium". Use one of: firefox, chrome.',
+    );
+  });
+});
+
 describe("devWebExtConfig", () => {
-  it("runs Firefox with a persistent profile", () => {
-    expect(options("firefox")).toEqual({
+  it("runs Firefox with a persistent profile", async () => {
+    expect(await configFor("firefox")).toEqual({
       target: "firefox-desktop",
       firefoxProfile: "/repo/.profiles/firefox",
       profileCreateIfMissing: true,
@@ -23,8 +40,8 @@ describe("devWebExtConfig", () => {
     });
   });
 
-  it("runs Chrome for Testing with a persistent profile", () => {
-    expect(options("chrome")).toEqual({
+  it("runs Chrome for Testing with a persistent profile", async () => {
+    expect(await configFor("chrome")).toEqual({
       target: "chromium",
       chromiumBinary: PLAYWRIGHT_CHROMIUM,
       chromiumProfile: "/repo/.profiles/chrome",
@@ -33,21 +50,35 @@ describe("devWebExtConfig", () => {
     });
   });
 
-  it("launches CHROMIUM_BINARY instead when it's set", () => {
+  it("doesn't look up a Chromium binary for Firefox", async () => {
+    const config = await configFor("firefox", () => {
+      throw new Error("looked up");
+    });
+    expect(config.target).toBe("firefox-desktop");
+  });
+});
+
+describe("chromiumBinaryFrom", () => {
+  const playwrightChromium = async () => PLAYWRIGHT_CHROMIUM;
+
+  it("uses Playwright's Chrome for Testing by default", async () => {
+    expect(await chromiumBinaryFrom({}, playwrightChromium)).toBe(
+      PLAYWRIGHT_CHROMIUM,
+    );
+  });
+
+  it("uses CHROMIUM_BINARY when it's set", async () => {
     expect(
-      options("chrome", { CHROMIUM_BINARY: "/opt/chromium" }).chromiumBinary,
+      await chromiumBinaryFrom(
+        { CHROMIUM_BINARY: "/opt/chromium" },
+        playwrightChromium,
+      ),
     ).toBe("/opt/chromium");
   });
 
-  it("doesn't look up Playwright's Chromium for Firefox", () => {
-    const result = devWebExtConfig({
-      target: "firefox",
-      root: "/repo",
-      env: {},
-      playwrightChromium: () => {
-        throw new Error("looked up");
-      },
-    });
-    expect(result.target).toBe("firefox-desktop");
+  it("ignores an empty CHROMIUM_BINARY", async () => {
+    expect(
+      await chromiumBinaryFrom({ CHROMIUM_BINARY: "" }, playwrightChromium),
+    ).toBe(PLAYWRIGHT_CHROMIUM);
   });
 });
