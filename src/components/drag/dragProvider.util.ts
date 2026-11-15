@@ -267,13 +267,14 @@ export const useSetDataTransfer = (
       const sourceIds = [...dragContext.sourceIds, sourceId];
       const sources = [...dragContext.sources, source].flat();
 
-      if (!sources || !sources.length) return;
-
       event.dataTransfer.dropEffect = "move";
       event.dataTransfer.setData(
         DATA_TYPE_KEYS.sources,
         JSON.stringify(sourceIds),
       );
+
+      // An empty Folder has no links to hand other apps.
+      if (!sources.length) return;
       event.dataTransfer.setData(
         DATA_TYPE_KEYS.urls,
         sources.map(({ url, title }) => `${url}\n${title}`).join("\n"),

@@ -82,6 +82,25 @@ test("a Folder's payload lists its Bookmarks", async ({ openHomebooks }) => {
   });
 });
 
+test("an empty Folder's payload holds only its Drag Source id", async ({
+  openHomebooks,
+}) => {
+  const { page, ids, item } = await openHomebooks([
+    { title: "Empty", children: [] },
+  ]);
+  const { zone, recorded } = await addDropRecorder(page);
+
+  await drag(item("Empty").locator("header").first(), {
+    onto: zone,
+    at: "in",
+  });
+
+  // No links to hand other apps, so only Homebooks' own payload.
+  await expect.poll(recorded).toEqual({
+    "text/home-books-sources": JSON.stringify([`folder-${ids["Empty"]}`]),
+  });
+});
+
 test("a Tab's payload", async ({ openHomebooks }) => {
   const { page, openTabs, tab } = await openHomebooks([
     { title: "B1", url: "https://b1.example/" },

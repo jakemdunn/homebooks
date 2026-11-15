@@ -15,7 +15,7 @@ const EIGHT = ["B1", "B2", "B3", "B4", "B5", "B6", "B7", "B8"];
 
 type Kind = "Bookmark" | "Folder";
 
-/** A Bookmark, or a Folder holding one Bookmark so it can be dragged (#38). */
+/** A Bookmark, or a Folder holding one Bookmark. */
 const node = (kind: Kind, title: string) => {
   const seed: SeedNode =
     kind === "Bookmark"
@@ -194,8 +194,8 @@ test.describe("at 1280×800, six columns", () => {
     await expect(homebooks.item("Folder A")).toContainText("1 Bookmark");
   });
 
-  test.fail(
-    "an empty Folder can be dragged (#38)",
+  test(
+    "an empty Folder can be dragged",
     async ({ openHomebooks }) => {
       const homebooks = await openHomebooks([
         { title: "Folder A", children: [] },
