@@ -14,6 +14,10 @@ _Avoid_: Home folder, base folder
 An item that holds other items and can be expanded or collapsed: a Folder or a Window.
 _Avoid_: Group, parent
 
+**Item Menu**:
+Homebooks' own menu of actions for a Bookmark or Folder, opened by the trigger chosen in Settings: right-click, a displayed menu button, or both.
+_Avoid_: Right Click Menu, context menu, floating menu
+
 ### Drag and drop
 
 **Drag Source**:
