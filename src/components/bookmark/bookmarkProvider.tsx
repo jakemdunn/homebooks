@@ -18,6 +18,7 @@ import {
 } from "./bookmarkSearch";
 import { useStorage } from "../../util/useStorage";
 import equal from "fast-deep-equal";
+import { useRootFolder } from "../../util/useRootFolder";
 
 function collectFolderIds(
   nodes: browser.Bookmarks.BookmarkTreeNode[] | undefined,
@@ -45,6 +46,7 @@ function findNodeById(
 
 export const BookmarkProvider: FC<PropsWithChildren> = (props) => {
   const [settings] = useSettingsStorage();
+  const rootFolder = useRootFolder();
   const [expandedIds, setExpanded] = useStorage(
     "expanded",
     [] as string[],
@@ -97,8 +99,13 @@ export const BookmarkProvider: FC<PropsWithChildren> = (props) => {
 
   useEffect(() => {
     const updateBookmarks = async () => {
-      if (!settings?.rootFolder) return;
-      const tree = await browser.bookmarks.getSubTree(settings.rootFolder);
+      if (!rootFolder) return;
+      // Undefined when the Root Folder was just deleted: useRootFolder then
+      // falls back, and this runs again for the new Root Folder.
+      const tree = await browser.bookmarks
+        .getSubTree(rootFolder)
+        .catch(() => undefined);
+      if (!tree) return;
       startTransition(() => {
         setBookmarks((current) => {
           if (equal(current, tree[0].children)) return current;
@@ -119,7 +126,7 @@ export const BookmarkProvider: FC<PropsWithChildren> = (props) => {
       browser.bookmarks.onMoved.removeListener(updateBookmarks);
       browser.bookmarks.onRemoved.removeListener(updateBookmarks);
     };
-  }, [settings?.rootFolder]);
+  }, [rootFolder]);
 
   const currentEdit = useMemo(() => {
     if (editFocusId === undefined || bookmarks === undefined) return undefined;

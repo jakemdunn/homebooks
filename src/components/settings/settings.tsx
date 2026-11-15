@@ -1,4 +1,4 @@
-import { FC, PropsWithChildren, useCallback, useEffect } from "react";
+import { FC, PropsWithChildren, useCallback, useEffect, useMemo } from "react";
 import { RiSettings4Fill } from "react-icons/ri";
 import HomeBooksIcon from "/icon/homebooks.svg?url";
 import {
@@ -25,6 +25,7 @@ import {
 import { useStorage } from "../../util/useStorage";
 import { SETTINGS_PANEL_VISIBLE } from "./settings.util";
 import { useTobyImport } from "../../util/toby.import";
+import { useRootFolder } from "../../util/useRootFolder";
 import equal from "fast-deep-equal";
 
 const SettingsUpdate: FC = () => {
@@ -102,6 +103,17 @@ export const Settings: FC<PropsWithChildren> = ({ children }) => {
   }, [open, setOpen]);
 
   const [settingsData, setSettingsData] = useSettingsStorage();
+  // The form shows the Root Folder in use, which falls back to "Other
+  // Bookmarks" when the stored one doesn't exist. It saves rootFolder only
+  // when the user picks one, so the fallback is never written.
+  const rootFolder = useRootFolder();
+  const formValues = useMemo(
+    () => ({
+      ...settingsData,
+      rootFolder: rootFolder ?? settingsData.rootFolder,
+    }),
+    [settingsData, rootFolder],
+  );
   const i18n = useI18n();
 
   return (
@@ -127,9 +139,19 @@ export const Settings: FC<PropsWithChildren> = ({ children }) => {
         <div className={settingsContentStyle}>
           <h2 className={settingsHeaderStyle}>Settings</h2>
           <Formik<SettingsData>
-            initialValues={settingsData}
+            initialValues={formValues}
             enableReinitialize
-            onSubmit={(values) => setSettingsData(normalizeSettings(values))}
+            onSubmit={(values) =>
+              setSettingsData(
+                normalizeSettings({
+                  ...values,
+                  rootFolder:
+                    values.rootFolder === formValues.rootFolder
+                      ? settingsData.rootFolder
+                      : values.rootFolder,
+                }),
+              )
+            }
           >
             {() => (
               <Form className={settingsFormStyle}>

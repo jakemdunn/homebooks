@@ -5,7 +5,7 @@ import {
   type CreateItemFormValues,
 } from "../components/createItem/createItemForm";
 import { buttonPrimaryStyle } from "../components/createItem/createItemForm.css";
-import { useSettingsStorage } from "../util/storage.types";
+import { useRootFolder } from "../util/useRootFolder";
 import { useI18n } from "../util/i18n";
 import { isExtensionOrBrowserInternalUrl } from "../util/restrictedTabUrl";
 import { openHomeBooksWithSettingsPanel } from "../util/openHomeBooksAndSettings";
@@ -23,7 +23,7 @@ import {
 
 const Popup: FC = () => {
   const t = useI18n();
-  const [settings] = useSettingsStorage();
+  const rootFolder = useRootFolder();
   const [tabDefaults, setTabDefaults] = useState<{
     title: string;
     url: string;
@@ -57,7 +57,7 @@ const Popup: FC = () => {
     window.close();
   }, []);
 
-  if (tabDefaults === null) {
+  if (tabDefaults === null || rootFolder === undefined) {
     return (
       <div className={popupLoadingRootStyle} aria-busy="true">
         {t("popupLoading")}
@@ -93,7 +93,7 @@ const Popup: FC = () => {
   }
 
   const initialValues: CreateItemFormValues = {
-    parentId: settings.rootFolder,
+    parentId: rootFolder,
     title: tabDefaults.title,
     url: tabDefaults.url,
   };

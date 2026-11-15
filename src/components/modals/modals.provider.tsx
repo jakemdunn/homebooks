@@ -11,7 +11,7 @@ import {
   ModalsContext,
   ModalsContextValue,
 } from "./modals.context";
-import { useSettingsStorage } from "../../util/storage.types";
+import { useRootFolder } from "../../util/useRootFolder";
 
 function mergeBookmarkDefaults(
   defaults: CreateModalDefaults | undefined,
@@ -35,8 +35,7 @@ function mergeFolderDefaults(
 }
 
 export const ModalsProvider: FC<PropsWithChildren> = ({ children }) => {
-  const [settings] = useSettingsStorage();
-  const rootFolder = settings?.rootFolder;
+  const rootFolder = useRootFolder();
   const [createModal, setCreateModal] = useState<CreateModalState | null>(null);
 
   const openNewBookmarkModal = useCallback(

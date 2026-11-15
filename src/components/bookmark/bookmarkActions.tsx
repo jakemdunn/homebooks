@@ -3,7 +3,7 @@ import { VscCollapseAll, VscExpandAll } from "react-icons/vsc";
 import { RiCloseCircleFill, RiFolderAddLine } from "react-icons/ri";
 import { FaSearch } from "react-icons/fa";
 import { useBookmarkContext } from "./bookmarkContext";
-import { useSettingsStorage } from "../../util/storage.types";
+import { useRootFolder } from "../../util/useRootFolder";
 import { useModalsContext } from "../modals/modals.context";
 import {
   actionButtonStyle,
@@ -15,12 +15,12 @@ import {
 
 export const BookmarkActions: FC = () => {
   const bookmarkContext = useBookmarkContext();
-  const [settings] = useSettingsStorage();
+  const rootFolder = useRootFolder();
   const { openNewFolderModal } = useModalsContext();
   const addFolder = useCallback(() => {
-    if (!settings?.rootFolder) return;
-    openNewFolderModal({ parentId: settings.rootFolder });
-  }, [openNewFolderModal, settings?.rootFolder]);
+    if (!rootFolder) return;
+    openNewFolderModal({ parentId: rootFolder });
+  }, [openNewFolderModal, rootFolder]);
   return (
     <section className={actionsStyle}>
       {!!bookmarkContext.bookmarks?.length && (

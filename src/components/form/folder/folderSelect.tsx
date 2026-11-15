@@ -13,7 +13,7 @@ import {
   useSetDataTransfer,
 } from "../../drag/dragProvider.util";
 import { HeightToggle } from "../../heightToggle/heightToggle";
-import { useSettingsStorage } from "../../../util/storage.types";
+import { useRootFolder } from "../../../util/useRootFolder";
 
 type FolderOption = {
   children?: FolderOption[];
@@ -170,8 +170,7 @@ export const FolderSelect: FC<FolderSelectFieldProps> = ({
   underHomebooksRoot = false,
   ...fieldProps
 }) => {
-  const [settings] = useSettingsStorage();
-  const rootFolderId = settings?.rootFolder;
+  const rootFolderId = useRootFolder();
   const [options, setOptions] = useState<FolderOption[]>([]);
   const [expanded, setExpanded] = useState<string[]>([]);
   const toggleExpanded = useCallback((id: string) => {
@@ -223,7 +222,11 @@ export const FolderSelect: FC<FolderSelectFieldProps> = ({
           setOptions([]);
           return;
         }
-        const sub = await bookmarks.getSubTree(rootFolderId);
+        // Empty when the Root Folder was just deleted: useRootFolder then
+        // falls back, and this runs again for the new Root Folder.
+        const sub = await bookmarks
+          .getSubTree(rootFolderId)
+          .catch(() => []);
         tree = sub[0] ? [sub[0]] : [];
       } else {
         tree = await bookmarks.getTree();

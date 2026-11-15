@@ -1,7 +1,7 @@
 import { useCallback, useState } from "react";
 import browser from "webextension-polyfill";
-import { useSettingsStorage } from "./storage.types";
 import { parseTobyExport, type TobyImportNode } from "./tobyExport";
+import { useRootFolder } from "./useRootFolder";
 
 const countNodes = (nodes: TobyImportNode[]): number =>
   nodes.reduce(
@@ -28,18 +28,18 @@ const createNodes = async (
 };
 
 export const useTobyImport = () => {
-  const [settings] = useSettingsStorage();
+  const rootFolder = useRootFolder();
   const [progress, setProgress] = useState(0);
   const parseToby = useCallback(
     async (tobyExport: object) => {
-      if (!settings?.rootFolder) throw new Error("Root folder not selected.");
+      if (!rootFolder) throw new Error("Root folder not selected.");
       return await parseTobyExport(tobyExport);
     },
-    [settings?.rootFolder],
+    [rootFolder],
   );
   const importToby = useCallback(
     async (imports: TobyImportNode[]) => {
-      if (!settings?.rootFolder) throw new Error("Root folder not selected.");
+      if (!rootFolder) throw new Error("Root folder not selected.");
 
       const totalOps = countNodes(imports);
       if (totalOps === 0) {
@@ -55,7 +55,7 @@ export const useTobyImport = () => {
       };
 
       try {
-        await createNodes(imports, settings.rootFolder, bumpProgress);
+        await createNodes(imports, rootFolder, bumpProgress);
         setProgress(100);
         setTimeout(() => setProgress(0), 1000);
       } catch (error) {
@@ -63,7 +63,7 @@ export const useTobyImport = () => {
         throw error;
       }
     },
-    [settings?.rootFolder],
+    [rootFolder],
   );
   return { parseToby, importToby, progress };
 };
