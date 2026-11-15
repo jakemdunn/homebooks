@@ -1,31 +1,31 @@
 import { useCallback, useState } from "react";
-import { array, number, object, string } from "yup";
 import browser from "webextension-polyfill";
 import { useSettingsStorage } from "./storage.types";
+import { parseTobyExport, type TobyImportNode } from "./tobyExport";
 
-export const tobySchema = object({
-  version: number()
-    .required()
-    .test(
-      "v3",
-      () => "Not a v3 toby import.",
-      (value) => value === 3,
-    ),
-  lists: array().of(
-    object({
-      title: string().required(),
-      cards: array().of(
-        object({
-          title: string().required(),
-          url: string().required(),
-          customTitle: string(),
-          customDescription: string(),
-        }),
-      ),
-      labels: array().of(string()),
-    }),
-  ),
-});
+const countNodes = (nodes: TobyImportNode[]): number =>
+  nodes.reduce(
+    (count, node) =>
+      count + 1 + ("children" in node ? countNodes(node.children) : 0),
+    0,
+  );
+
+const createNodes = async (
+  nodes: TobyImportNode[],
+  parentId: string,
+  onCreated: () => void,
+) => {
+  for (const node of nodes) {
+    const created = await browser.bookmarks.create({
+      parentId,
+      title: node.title,
+      ...("url" in node && { url: node.url }),
+    });
+    onCreated();
+    if ("children" in node)
+      await createNodes(node.children, created.id, onCreated);
+  }
+};
 
 export const useTobyImport = () => {
   const [settings] = useSettingsStorage();
@@ -33,20 +33,15 @@ export const useTobyImport = () => {
   const parseToby = useCallback(
     async (tobyExport: object) => {
       if (!settings?.rootFolder) throw new Error("Root folder not selected.");
-      return await tobySchema.validate(tobyExport);
+      return await parseTobyExport(tobyExport);
     },
     [settings?.rootFolder],
   );
   const importToby = useCallback(
-    async (imports: Awaited<ReturnType<typeof parseToby>>) => {
+    async (imports: TobyImportNode[]) => {
       if (!settings?.rootFolder) throw new Error("Root folder not selected.");
 
-      const lists = imports.lists ?? [];
-      const totalOps = lists.reduce(
-        (acc, list) => acc + 1 + (list.cards?.length ?? 0),
-        0,
-      );
-
+      const totalOps = countNodes(imports);
       if (totalOps === 0) {
         setProgress(100);
         return;
@@ -60,21 +55,7 @@ export const useTobyImport = () => {
       };
 
       try {
-        for (const list of lists) {
-          const folder = await browser.bookmarks.create({
-            title: list.title,
-            parentId: settings.rootFolder,
-          });
-          bumpProgress();
-          for (const card of list.cards ?? []) {
-            await browser.bookmarks.create({
-              title: card.title,
-              url: card.url,
-              parentId: folder.id,
-            });
-            bumpProgress();
-          }
-        }
+        await createNodes(imports, settings.rootFolder, bumpProgress);
         setProgress(100);
         setTimeout(() => setProgress(0), 1000);
       } catch (error) {
