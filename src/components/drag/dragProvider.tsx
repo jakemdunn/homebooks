@@ -11,106 +11,17 @@ import {
 import { indicatorStyle } from "./dragProvider.css";
 import {
   DataTransferSource,
-  DragId,
   getSources,
   processDataTransfer,
   useGetEventData,
 } from "./dragProvider.util";
-import { DragState, DragContextProps, DragContext } from "./dragContext";
-
-type DragAction =
-  | {
-      action: "addSource" | "removeSource" | "addPeek";
-      id: DragId;
-    }
-  | {
-      action: "setDestination";
-      id: DragId;
-      position: DragState["position"];
-    }
-  | {
-      action: "startDrag";
-      id: DragId;
-    }
-  | {
-      action: "endDrag" | "removeDestination";
-    };
+import { DragContextProps, DragContext } from "./dragContext";
+import { getDropPosition } from "./dropPosition";
+import { dragReducer, initialDragState } from "./dragReducer";
 
 export const DragProvider: FC<React.PropsWithChildren> = ({ children }) => {
   const { eventData, getEventData } = useGetEventData();
-  const [dragState, dragDispatch] = useReducer<DragState, [DragAction]>(
-    (state, action) => {
-      switch (action.action) {
-        case "startDrag": {
-          const sourceIds = new Set(state.sourceIds);
-          sourceIds.add(action.id);
-          return {
-            ...state,
-            dragging: true,
-            sourceIds,
-          };
-        }
-        case "endDrag":
-          return {
-            ...state,
-            dragging: false,
-            sources: new Set(),
-            sourceIds: new Set(),
-            peekedIds: new Set(),
-            destinationId: undefined,
-            position: undefined,
-          };
-        case "addSource": {
-          if (state.sourceIds.has(action.id)) {
-            return state;
-          }
-          const sourceIds = new Set([...state.sourceIds, action.id]);
-          return { ...state, sourceIds };
-        }
-        case "addPeek": {
-          if (state.peekedIds.has(action.id)) {
-            return state;
-          }
-          const peekedIds = new Set([...state.peekedIds, action.id]);
-          return {
-            ...state,
-            peekedIds,
-          };
-        }
-        case "removeSource": {
-          if (!state.sourceIds.has(action.id)) {
-            return state;
-          }
-          const sourceIds = new Set(state.sourceIds);
-          sourceIds.delete(action.id);
-          return { ...state, sourceIds: new Set(state.sourceIds) };
-        }
-        case "removeDestination": {
-          if (!state.destinationId) {
-            return state;
-          }
-          return { ...state, destinationId: undefined, position: undefined };
-        }
-        case "setDestination":
-          if (
-            state.destinationId === action.id &&
-            state.position === action.position
-          ) {
-            return state;
-          }
-          return {
-            ...state,
-            destinationId: action.id,
-            position: action.position,
-          };
-      }
-    },
-    {
-      sourceIds: new Set(),
-      peekedIds: new Set(),
-      dragging: false,
-    },
-  );
+  const [dragState, dragDispatch] = useReducer(dragReducer, initialDragState);
   const [sources, setSources] = useState<DataTransferSource[]>([]);
   useEffect(() => {
     (async () => {
@@ -119,47 +30,6 @@ export const DragProvider: FC<React.PropsWithChildren> = ({ children }) => {
       setSources(updatedSources);
     })();
   }, [dragState.sourceIds]);
-
-  const getPosition = useCallback<
-    (
-      target: Element,
-      event: React.DragEvent<HTMLElement>,
-    ) => DragState["position"]
-  >((target, event) => {
-    const rect = target.getBoundingClientRect();
-
-    const INSET = 15;
-    if (
-      event.clientY > rect.top + INSET &&
-      event.clientY < rect.bottom - INSET &&
-      event.clientX > rect.left + INSET &&
-      event.clientX < rect.right - INSET
-    ) {
-      return "in";
-    }
-
-    const biasDepth = Math.min(rect.width, rect.height) * 0.5;
-    const x = event.clientX - rect.left;
-    const y = event.clientY - rect.top;
-
-    let xBias = 0;
-    if (x < biasDepth) xBias = -(1 - x / biasDepth);
-    else if (x > rect.width - biasDepth)
-      xBias = (x - rect.width + biasDepth) / biasDepth;
-
-    let yBias = 0;
-    if (y < biasDepth) yBias = -(1 - y / biasDepth);
-    else if (y > rect.height - biasDepth)
-      yBias = (y - rect.height + biasDepth) / biasDepth;
-
-    const orientationBias = Math.abs(xBias) > Math.abs(yBias) ? "x" : "y";
-
-    if (orientationBias === "y" && yBias < 0) return "top";
-    if (orientationBias === "y" && yBias > 0) return "bottom";
-    if (orientationBias === "x" && xBias < 0) return "left";
-    if (orientationBias === "x" && xBias > 0) return "right";
-    return rect.width > rect.height ? "bottom" : "right";
-  }, []);
 
   const onDragStart = useCallback<React.DragEventHandler<HTMLElement>>(
     (event) => {
@@ -198,10 +68,14 @@ export const DragProvider: FC<React.PropsWithChildren> = ({ children }) => {
       dragDispatch({
         action: "setDestination",
         id,
-        position: getPosition(target, event),
+        position: getDropPosition(
+          target.getBoundingClientRect(),
+          event.clientX,
+          event.clientY,
+        ),
       });
     },
-    [getEventData, getPosition],
+    [getEventData],
   );
 
   const onDrop = useCallback<React.DragEventHandler<HTMLElement>>(

@@ -7,12 +7,13 @@ import reactRefresh from "eslint-plugin-react-refresh";
 
 export default tseslint.config(
   {
-    ignores: ["dist"],
+    ignores: ["dist", "dist-e2e", "test-results", "playwright-report"],
   },
   eslint.configs.recommended,
   reactRefresh.configs.recommended,
   tseslint.configs.recommended,
   {
+    files: ["src/**"],
     plugins: {
       // @ts-ignore
       "react-hooks": hooksPlugin,

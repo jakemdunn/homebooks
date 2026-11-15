@@ -113,6 +113,7 @@ export const FloatingMenuHandler: FC<
       >
         {dragIndicator ? (
           <div
+            aria-hidden="true"
             className={dragIndicator.className}
             style={dragIndicator.style}
           />

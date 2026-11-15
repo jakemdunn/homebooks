@@ -1,30 +1,16 @@
 import browser, { Bookmarks } from "webextension-polyfill";
 import { useDragContext } from "./dragContext";
 import { useCallback, useMemo, useRef } from "react";
+import {
+  DATA_TYPE_KEYS,
+  parseDataTransfer,
+  type DataTransferTypes,
+} from "./dataTransfer";
+import type { DragId, DragPosition, DragType } from "./dragTypes";
+
+export type { DragId, DragPosition, DragType };
 
 export const extensionURL = browser.runtime.getURL("");
-
-export const DATA_TYPE_KEYS = {
-  sources: "text/home-books-sources",
-  urls: "text/x-moz-url",
-  html: "text/html",
-  plain: "text/plain",
-} as const;
-
-export type DragType = "bookmark" | "folder" | "tab" | "window";
-export type DragId = `${DragType}-${string}`;
-export type DragPosition = "top" | "bottom" | "left" | "right" | "in";
-
-type DataTransferTypes =
-  | {
-      type: "dragIds";
-      data: DragId[];
-    }
-  | {
-      type: "urls";
-      data: { url: string; title: string }[];
-    }
-  | undefined;
 
 export const getEventData = (
   event: React.DragEvent<HTMLElement> | React.MouseEvent<HTMLElement>,
@@ -68,28 +54,6 @@ export const useGetEventData = () => {
     [],
   );
   return { eventData, getEventData: trackedGetEventData };
-};
-
-const parseDataTransfer = (dataTransfer: DataTransfer): DataTransferTypes => {
-  if (dataTransfer.types.includes(DATA_TYPE_KEYS.sources)) {
-    const json = dataTransfer.getData(DATA_TYPE_KEYS.sources);
-    try {
-      return {
-        type: "dragIds",
-        data: JSON.parse(json) as DragId[],
-      };
-    } catch (error) {
-      console.error(error);
-    }
-  }
-  if (dataTransfer.types.includes(DATA_TYPE_KEYS.urls)) {
-    const urls = dataTransfer.getData(DATA_TYPE_KEYS.urls);
-    const pairs = urls.matchAll(/(.*)\n(.*)\n?/gm);
-    return {
-      type: "urls",
-      data: [...pairs].map(([, url, title]) => ({ url, title })),
-    };
-  }
 };
 
 const processBookmarkMove = async (

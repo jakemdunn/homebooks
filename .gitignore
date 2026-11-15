@@ -1,2 +1,7 @@
 node_modules
 dist
+
+# Test output
+dist-e2e
+test-results
+playwright-report

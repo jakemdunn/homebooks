@@ -2,6 +2,9 @@ import browser from "webextension-polyfill";
 import { BOOKMARK_MENU_ACTIONS } from "./util/menu.bookmark";
 import { FOLDER_MENU_ACTIONS } from "./util/menu.folder";
 import { ExtensionStorageData } from "./util/storage.types";
+import { installChromiumBookmarksShim } from "./util/chromiumBookmarksShim";
+
+installChromiumBookmarksShim();
 
 const handlePermissionsUpdate = async () => {
   const visible = await browser.extension.isAllowedIncognitoAccess();

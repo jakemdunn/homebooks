@@ -17,7 +17,7 @@
     "96": "icon/homebooks.svg",
     "128": "icon/homebooks.svg"
   },
-  "chrome_settings_overrides": {
+  "{{firefox}}.chrome_settings_overrides": {
     "homepage": "src/homepage.html"
   },
   "chrome_url_overrides": {
