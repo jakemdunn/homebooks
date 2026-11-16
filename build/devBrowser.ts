@@ -9,7 +9,13 @@ export type DevTarget = (typeof DEV_TARGETS)[number];
 /** Where `yarn dev` keeps each browser's persistent profile. */
 const PROFILES_FOLDER = ".profiles";
 
-type WebExtConfig = NonNullable<PluginOptions["webExtConfig"]>;
+/**
+ * The plugin spreads this config into web-ext-run's `cmd.run`, which also
+ * reads `noReloadManagerExtension`; the plugin's types don't list it.
+ */
+type WebExtConfig = NonNullable<PluginOptions["webExtConfig"]> & {
+  noReloadManagerExtension?: boolean;
+};
 
 const isDevTarget = (value: string): value is DevTarget =>
   (DEV_TARGETS as readonly string[]).includes(value);
@@ -60,6 +66,10 @@ export const devWebExtConfig = async ({
         chromiumBinary: await chromiumBinary(),
         chromiumProfile: profile,
         ...persistentProfile,
+        // web-ext-run 0.2.2 loads a Manifest V2 "reload manager" extension,
+        // which Chrome for Testing refuses with "unsupported manifest
+        // version". It never loads, so leaving it out loses nothing.
+        noReloadManagerExtension: true,
       };
 };
 

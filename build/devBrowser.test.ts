@@ -47,6 +47,7 @@ describe("devWebExtConfig", () => {
       chromiumProfile: "/repo/.profiles/chrome",
       profileCreateIfMissing: true,
       keepProfileChanges: true,
+      noReloadManagerExtension: true,
     });
   });
 

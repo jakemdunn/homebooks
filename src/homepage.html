@@ -2,6 +2,16 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <!--
+      Painted before any script or stylesheet loads, so the page never
+      flashes white. Keep in step with globalTheme.colors.background.base
+      (palette.rich_black) in src/pages/global.css.ts.
+    -->
+    <style>
+      html {
+        background: #001219;
+      }
+    </style>
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
