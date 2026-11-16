@@ -134,7 +134,9 @@ export const DragProvider: FC<PropsWithChildren> = ({ children }) => {
 
         // TODO: Handle file drop for Toby Import
 
-        processDataTransfer(event, position);
+        processDataTransfer(event, position).catch((error) =>
+          console.error("The drop failed.", error),
+        );
         event.preventDefault();
       },
     }),

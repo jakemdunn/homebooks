@@ -132,10 +132,54 @@ test.describe("a Window dropped on bookmarks", () => {
     });
 
     await expect.poll(homebooks.openTabIds).not.toContain(tabIds["Tab 1"]);
+    await expectRootFolder(homebooks, [{ "Folder A": ["Tab 1"] }]);
     await expectUnchanged(homebooks.bookmarkTree, [{ "Folder A": ["Tab 1"] }]);
     // Neither bookmarked nor closed.
     expect(await homebooks.openTabIds()).toContain(hiddenTabId);
   });
+});
+
+test("keeps a dropped Tab open when its Bookmark can't be created (#53)", async ({
+  context,
+  openHomebooks,
+}) => {
+  // Every Bookmark create fails, as it would if the browser refused it. The
+  // polyfill calls this inside a Promise, so the throw becomes a rejection.
+  await context.addInitScript(() => {
+    const page = window as unknown as { refusedCreates: number };
+    page.refusedCreates = 0;
+    chrome.bookmarks.create = (() => {
+      page.refusedCreates++;
+      throw new Error("create refused");
+    }) as typeof chrome.bookmarks.create;
+  });
+  const homebooks = await openHomebooks([{ title: "Folder A", children: [] }]);
+  const errors: string[] = [];
+  homebooks.page.on("console", (message) => {
+    if (message.type() === "error") errors.push(message.text());
+  });
+  const uncaught: Error[] = [];
+  homebooks.page.on("pageerror", (error) => uncaught.push(error));
+  const { tabIds } = await homebooks.openTabs(["Tab A"]);
+
+  await drag(homebooks.tab(tabIds["Tab A"]), {
+    onto: homebooks.item("Folder A"),
+    at: "in",
+  });
+
+  await expect
+    .poll(() =>
+      homebooks.page.evaluate(
+        () => (window as unknown as { refusedCreates: number }).refusedCreates,
+      ),
+    )
+    .toBe(1);
+  await expect
+    .poll(() => errors.some((text) => text.includes("create refused")))
+    .toBe(true);
+  await expectUnchanged(homebooks.bookmarkTree, [{ "Folder A": [] }]);
+  expect(await homebooks.openTabIds()).toContain(tabIds["Tab A"]);
+  expect(uncaught).toEqual([]);
 });
 
 /** Bookmarks and open tabs together, so one check covers both. */

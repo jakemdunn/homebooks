@@ -64,19 +64,22 @@ const processBookmarkMove = async (
       await browser.bookmarks.move(node.source.id, props);
       return;
     }
-    if ("type" in node && node.type === "tab" && node.source.id) {
-      await browser.tabs.remove(node.source.id);
-    }
     await browser.bookmarks.create({
       ...props,
       title: node.title,
       url: node.url,
     });
+    // Only once its Bookmark exists, so a failed create loses nothing.
+    if ("type" in node && node.type === "tab" && node.source.id) {
+      await browser.tabs.remove(node.source.id);
+    }
   };
 
+  // One at a time, in order: a failed move stops the rest, and the error
+  // reaches the drop handler.
   if (position === "in" && destinationNode.type === "folder") {
     for (const sourceNode of sourceNodes) {
-      moveNode(sourceNode, { parentId: destinationNode.id });
+      await moveNode(sourceNode, { parentId: destinationNode.id });
     }
     return;
   }
@@ -111,7 +114,7 @@ const processBookmarkMove = async (
     ) {
       targetIndex -= 1;
     }
-    moveNode(sourceNode, {
+    await moveNode(sourceNode, {
       parentId: destinationNode.parentId,
       index: targetIndex,
     });
@@ -136,7 +139,7 @@ export const processDataTransfer = async (
   const [type, id] = parseDragId(dragId);
 
   if (type === "bookmark" || type === "folder") {
-    processBookmarkMove(data, id, target, position);
+    await processBookmarkMove(data, id, target, position);
   } else {
     // TODO: Handle move to windows
   }
