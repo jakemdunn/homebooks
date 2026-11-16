@@ -5,10 +5,11 @@ export function useStorage<T>(
   key: string,
   defaultValue: T,
   type: StorageType = "local",
-): [T, (value: T) => void] {
+): [T, (value: T) => void, boolean] {
   const { dispatch, ...storageAreas } = useStorageContext();
 
-  const data = storageAreas[type].cache[key] as T;
+  const { cache, known } = storageAreas[type];
+  const data = cache[key] as T | undefined;
   const setData = useCallback(
     (value: T) => {
       dispatch({
@@ -21,12 +22,14 @@ export function useStorage<T>(
   );
 
   useEffect(() => {
-    dispatch({
-      method: "load",
-      defaults: { [key]: defaultValue },
-      type,
-    });
-  }, [defaultValue, dispatch, key, type]);
+    dispatch({ method: "load", keys: [key], type });
+  }, [dispatch, key, type]);
 
-  return [data ?? defaultValue, setData];
+  /** Whether the value is known, from storage or its localStorage copy. */
+  const loaded = known.includes(key);
+  return [data ?? defaultValue, setData, loaded];
 }
+
+/** Whether storage itself has answered for `key` on this page yet. */
+export const useStorageAnswered = (key: string, type: StorageType = "local") =>
+  useStorageContext()[type].answered.includes(key);

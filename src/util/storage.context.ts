@@ -8,7 +8,16 @@ export type StorageType = Extract<
 
 export type StorageContextState = {
   [Prop in StorageType]: {
+    /** Values by key. Keys storage has no value for have no entry. */
     cache: Record<string, unknown>;
+    /** Keys whose value is known, from storage or its localStorage copy. */
+    known: string[];
+    /** Keys storage has answered for at least once on this page. */
+    answered: string[];
+    /** Keys set on this page that storage hasn't yet reported back. */
+    localSets: string[];
+    /** Keys fetched from storage, or being fetched. */
+    requested: string[];
     incoming: string[];
     outgoing: Record<string, unknown>;
   };
@@ -20,14 +29,21 @@ export interface StorageContextType extends StorageContextState {
 
 export type StorageAction =
   | {
+      /** A value set on this page, to write to storage. */
       method: "set";
       values: Record<string, unknown>;
       type: StorageType;
-      fromStorage?: true;
+    }
+  | {
+      /** Storage's values for `keys`; a key missing from `values` has none. */
+      method: "answer";
+      keys: string[];
+      values: Record<string, unknown>;
+      type: StorageType;
     }
   | {
       method: "load";
-      defaults: Record<string, unknown>;
+      keys: string[];
       type: StorageType;
     }
   | {

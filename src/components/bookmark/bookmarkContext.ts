@@ -3,6 +3,11 @@ import browser from "webextension-polyfill";
 
 export interface BookmarkState {
   bookmarks?: browser.Bookmarks.BookmarkTreeNode[];
+  /**
+   * True until the live bookmarks and settings have arrived. Until then the
+   * page may be showing their localStorage copies.
+   */
+  loading: boolean;
   expanded: string[];
   toggle: (folderId: string) => void;
   expandAll: () => void;

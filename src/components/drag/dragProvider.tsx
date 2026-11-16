@@ -1,6 +1,5 @@
 import {
   FC,
-  startTransition,
   useCallback,
   useEffect,
   useMemo,
@@ -17,6 +16,10 @@ import {
 } from "./dragProvider.util";
 import { DragContextProps, DragContext } from "./dragContext";
 import { getDropPosition } from "./dropPosition";
+import {
+  regionOf,
+  startRegionTransition,
+} from "../../util/viewTransitionRegion";
 import { dragReducer, initialDragState } from "./dragReducer";
 
 export const DragProvider: FC<React.PropsWithChildren> = ({ children }) => {
@@ -170,8 +173,9 @@ export const DragProvider: FC<React.PropsWithChildren> = ({ children }) => {
     );
     if (isContainer) {
       dragOverTimeout.current = setTimeout(() => {
-        startTransition(() => {
-          dragDispatch({ action: "addPeek", id: dragState.destinationId! });
+        const id = dragState.destinationId!;
+        startRegionTransition([regionOf(id)], () => {
+          dragDispatch({ action: "addPeek", id });
         });
       }, 700);
     }

@@ -15,62 +15,105 @@ import {
 } from "./storage.context";
 import { Storage, storage } from "webextension-polyfill";
 import deepEqual from "fast-deep-equal";
+import {
+  StorageMirror,
+  readStorageMirror,
+  writeStorageMirror,
+} from "./storageMirror";
+
+/** An area's state, starting from its localStorage copy. */
+const areaState = ({ values, known }: StorageMirror) => ({
+  cache: values,
+  known,
+  answered: [],
+  localSets: [],
+  requested: [],
+  incoming: [],
+  outgoing: {},
+});
+
+/**
+ * Starts from the localStorage copy of `local` and `sync` storage, so the
+ * first render has the last-seen settings and expanded Folders.
+ * `browser.storage` is still read, and replaces any value that differs.
+ */
+const createInitialState = (): StorageContextState => ({
+  local: areaState(readStorageMirror("local")),
+  sync: areaState(readStorageMirror("sync")),
+  session: areaState({ values: {}, known: [] }),
+});
+
+const union = (keys: string[], more: string[]) => [
+  ...new Set([...keys, ...more]),
+];
+const without = (keys: string[], less: string[]) =>
+  keys.filter((key) => !less.includes(key));
 
 export const StorageProvider: FC<PropsWithChildren> = ({ children }) => {
-  const [storageState, storageDispatch] = useReducer<
-    StorageContextState,
-    [StorageAction]
-  >(
-    (state, action) => {
+  const [storageState, storageDispatch] = useReducer(
+    (
+      state: StorageContextState,
+      action: StorageAction,
+    ): StorageContextState => {
       switch (action.method) {
         case "set": {
+          const area = state[action.type];
+          const keys = Object.keys(action.values);
           return {
             ...state,
             [action.type]: {
-              ...state[action.type],
-              outgoing: !action.fromStorage
-                ? {
-                    ...state[action.type].outgoing,
-                    ...action.values,
-                  }
-                : state[action.type].outgoing,
-              cache: {
-                ...state[action.type].cache,
-                ...action.values,
-              },
+              ...area,
+              outgoing: { ...area.outgoing, ...action.values },
+              cache: { ...area.cache, ...action.values },
+              known: union(area.known, keys),
+              localSets: union(area.localSets, keys),
+            },
+          };
+        }
+        case "answer": {
+          const area = state[action.type];
+          // A value set here since wins until storage reports it back.
+          const keys = without(action.keys, area.localSets);
+          if (keys.length === 0) return state;
+          const cache = { ...area.cache };
+          for (const key of keys) {
+            if (key in action.values) cache[key] = action.values[key];
+            else delete cache[key];
+          }
+          return {
+            ...state,
+            [action.type]: {
+              ...area,
+              cache,
+              known: union(area.known, keys),
+              answered: union(area.answered, keys),
             },
           };
         }
         case "load": {
-          const defaults = Object.fromEntries(
-            Object.entries(action.defaults).filter(
-              ([key]) => !(key in state[action.type].cache),
-            ),
+          const keys = action.keys.filter(
+            (key) => !state[action.type].requested.includes(key),
           );
-          if (Object.keys(defaults).length === 0) {
+          if (keys.length === 0) {
             return state;
           }
           return {
             ...state,
             [action.type]: {
               ...state[action.type],
-              cache: {
-                ...state[action.type].cache,
-                ...defaults,
-              },
-              incoming: [
-                ...state[action.type].incoming,
-                ...Object.keys(defaults),
-              ],
+              requested: [...state[action.type].requested, ...keys],
+              incoming: [...state[action.type].incoming, ...keys],
             },
           };
         }
         case "incoming-updates": {
+          // Storage reporting a change means any local set has landed.
           return {
             ...state,
             [action.type]: {
               ...state[action.type],
               incoming: [...state[action.type].incoming, ...action.keys],
+              localSets: without(state[action.type].localSets, action.keys),
             },
           };
         }
@@ -96,11 +139,8 @@ export const StorageProvider: FC<PropsWithChildren> = ({ children }) => {
           return state;
       }
     },
-    {
-      local: { cache: {}, incoming: [], outgoing: {} },
-      sync: { cache: {}, incoming: [], outgoing: {} },
-      session: { cache: {}, incoming: [], outgoing: {} },
-    },
+    undefined,
+    createInitialState,
   );
 
   useEffect(() => {
@@ -131,24 +171,34 @@ export const StorageProvider: FC<PropsWithChildren> = ({ children }) => {
         method: "clear-incoming",
         type: type,
       });
-      const updates = await storage[type].get(incoming);
-      const updated = Object.fromEntries(
-        Object.entries(updates).filter(([key, value]) => {
-          return !deepEqual(storageState[type].cache[key], value);
-        }),
+      const values = await storage[type].get(incoming);
+      const { answered, cache } = storageState[type];
+      // Storage's first answer for a key is part of loading the page, so it
+      // renders directly, even where it differs from the localStorage copy.
+      const firstAnswers = incoming.filter((key) => !answered.includes(key));
+      if (firstAnswers.length > 0) {
+        storageDispatch({ method: "answer", keys: firstAnswers, values, type });
+      }
+      const changes = incoming.filter(
+        (key) => answered.includes(key) && !deepEqual(cache[key], values[key]),
       );
-      if (Object.keys(updated).length > 0) {
+      if (changes.length > 0) {
+        // A change from another page, such as a Folder expanded in another
+        // tab. Untyped, so no region animates it (see viewTransitionRegion).
         startTransition(() => {
-          storageDispatch({
-            method: "set",
-            values: updated,
-            type: type,
-            fromStorage: true,
-          });
+          storageDispatch({ method: "answer", keys: changes, values, type });
         });
       }
     });
   }, [storageState]);
+
+  const { local, sync } = storageState;
+  useEffect(() => {
+    writeStorageMirror("local", { values: local.cache, known: local.known });
+  }, [local.cache, local.known]);
+  useEffect(() => {
+    writeStorageMirror("sync", { values: sync.cache, known: sync.known });
+  }, [sync.cache, sync.known]);
 
   useEffect(() => {
     (["local", "sync", "session"] as StorageType[]).forEach(async (type) => {

@@ -4,8 +4,8 @@ import {
   useCallback,
   useEffect,
   useMemo,
+  useRef,
   useState,
-  useTransition,
 } from "react";
 import browser from "webextension-polyfill";
 import { BookmarkState, BookmarkContext } from "./bookmarkContext";
@@ -16,10 +16,15 @@ import {
   collectBookmarkSearchTargets,
   useFilterBookmarksByQuery,
 } from "./bookmarkSearch";
-import { useStorage } from "../../util/useStorage";
+import { useStorage, useStorageAnswered } from "../../util/useStorage";
 import equal from "fast-deep-equal";
 import { useRootFolder } from "../../util/rootFolder.context";
+import { startRegionTransition } from "../../util/viewTransitionRegion";
 import { getRootFolderSubTree } from "../../util/rootFolder.bookmarks";
+import {
+  cachedBookmarks,
+  writeCachedBookmarks,
+} from "../../util/bookmarkCache";
 
 function collectFolderIds(
   nodes: browser.Bookmarks.BookmarkTreeNode[] | undefined,
@@ -56,8 +61,11 @@ export const BookmarkProvider: FC<PropsWithChildren> = (props) => {
 
   const dragState = useDragContext();
 
-  const [bookmarks, setBookmarks] =
-    useState<browser.Bookmarks.BookmarkTreeNode[]>();
+  // Starts from the bookmarks last read for this Root Folder, if any, so a
+  // new tab shows them before the bookmarks API answers.
+  const [bookmarks, setBookmarks] = useState<
+    browser.Bookmarks.BookmarkTreeNode[] | undefined
+  >(() => cachedBookmarks(rootFolder));
   const [editFocusId, setEditFocusId] = useState<string | undefined>(undefined);
   const setCurrentEdit = useCallback(
     (node?: browser.Bookmarks.BookmarkTreeNode) => {
@@ -96,19 +104,40 @@ export const BookmarkProvider: FC<PropsWithChildren> = (props) => {
     setSearchPeekedIds([...searchFolderIdsToExpand]);
   }, [searchQuery, searchFolderIdsToExpand]);
 
-  const [, startTransition] = useTransition();
+  const hasLiveBookmarks = useRef(false);
+  const [showingLiveBookmarks, setShowingLiveBookmarks] = useState(false);
+  const settingsAnswered = useStorageAnswered("settings", "sync");
+  const expandedAnswered = useStorageAnswered("expanded", "sync");
+  const loading =
+    !showingLiveBookmarks || !settingsAnswered || !expandedAnswered;
+  /**
+   * The first live read renders directly, replacing any cached bookmarks
+   * without a view transition; later changes animate the Bookmarks column.
+   */
+  const showLiveBookmarks = useCallback(
+    (children: browser.Bookmarks.BookmarkTreeNode[]) => {
+      const update = () =>
+        setBookmarks((shown) => (equal(shown, children) ? shown : children));
+      if (hasLiveBookmarks.current)
+        startRegionTransition(["bookmarks"], update);
+      else update();
+      hasLiveBookmarks.current = true;
+      setShowingLiveBookmarks(true);
+    },
+    [],
+  );
 
   useEffect(() => {
+    // Set false once this Root Folder is replaced, so a read still in flight
+    // for it can't overwrite the new one's bookmarks or cache.
+    let current = true;
     const updateBookmarks = async () => {
       if (!rootFolder) return;
       const tree = await getRootFolderSubTree(rootFolder);
-      if (!tree) return;
-      startTransition(() => {
-        setBookmarks((current) => {
-          if (equal(current, tree.children)) return current;
-          return tree.children;
-        });
-      });
+      if (!current || !tree?.children) return;
+      const children = tree.children;
+      writeCachedBookmarks({ rootFolder, children });
+      showLiveBookmarks(children);
     };
     updateBookmarks();
 
@@ -118,12 +147,13 @@ export const BookmarkProvider: FC<PropsWithChildren> = (props) => {
     browser.bookmarks.onRemoved.addListener(updateBookmarks);
 
     return () => {
+      current = false;
       browser.bookmarks.onChanged.removeListener(updateBookmarks);
       browser.bookmarks.onCreated.removeListener(updateBookmarks);
       browser.bookmarks.onMoved.removeListener(updateBookmarks);
       browser.bookmarks.onRemoved.removeListener(updateBookmarks);
     };
-  }, [rootFolder]);
+  }, [rootFolder, showLiveBookmarks]);
 
   const currentEdit = useMemo(() => {
     if (editFocusId === undefined || bookmarks === undefined) return undefined;
@@ -133,7 +163,7 @@ export const BookmarkProvider: FC<PropsWithChildren> = (props) => {
   const expandedSource = searchPeekedIds ?? expandedIds;
   const updateExpanded = useCallback(
     (updated: string[]) => {
-      startTransition(() => {
+      startRegionTransition(["bookmarks"], () => {
         if (searchActive) {
           setSearchPeekedIds(updated);
         } else {
@@ -183,6 +213,7 @@ export const BookmarkProvider: FC<PropsWithChildren> = (props) => {
       displayBookmarks,
       expandAll,
       expanded,
+      loading,
       searchQuery,
       setCurrentEdit,
       setSearchQuery,
@@ -195,6 +226,7 @@ export const BookmarkProvider: FC<PropsWithChildren> = (props) => {
       displayBookmarks,
       expandAll,
       expanded,
+      loading,
       searchQuery,
       setCurrentEdit,
       setSearchQuery,

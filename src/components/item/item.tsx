@@ -20,6 +20,7 @@ import { DragId } from "../drag/dragProvider.util";
 import { TiThMenu } from "react-icons/ti";
 import { FloatingMenuButton } from "../floatingMenu/floatingMenuButton";
 import { useSettingsStorage } from "../../util/storage.types";
+import { transitionClassFor, regionOf } from "../../util/viewTransitionRegion";
 
 export type ItemProps = Omit<
   React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>, HTMLElement>,
@@ -68,7 +69,7 @@ export const Item: FC<PropsWithChildren<ItemProps>> = ({
   );
 
   return (
-    <ViewTransition name={id}>
+    <ViewTransition name={id} default={transitionClassFor(regionOf(id))}>
       <div className={itemClassNames} {...props}>
         {onClick && (
           <button type="button" className={itemStyle} onClick={onClick}>

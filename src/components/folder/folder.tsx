@@ -19,6 +19,7 @@ import { FaRegWindowMaximize, FaRegWindowRestore } from "react-icons/fa6";
 import { FaRegFolder, FaRegFolderOpen } from "react-icons/fa6";
 import { TiThMenu } from "react-icons/ti";
 import { FloatingMenuButton } from "../floatingMenu/floatingMenuButton";
+import { transitionClassFor, regionOf } from "../../util/viewTransitionRegion";
 
 export type FolderType = "bookmark" | "window";
 
@@ -53,12 +54,14 @@ export const Folder: FC<PropsWithChildren<FolderProps>> = ({
     folderStyle,
   );
 
+  const transitionClass = transitionClassFor(regionOf(id));
+
   return (
-    <ViewTransition name={`folder-${id}`}>
+    <ViewTransition name={`folder-${id}`} default={transitionClass}>
       <div className={folderClassNames} draggable data-container {...props}>
         <header className={folderHeaderWrapperStyles}>
           <div className={folderHeaderStyles} onClick={onClick}>
-            <ViewTransition name={`title-${id}`}>
+            <ViewTransition name={`title-${id}`} default={transitionClass}>
               <div className={folderHeadingStyle}>
                 {title}
                 {detail && (
@@ -66,7 +69,7 @@ export const Folder: FC<PropsWithChildren<FolderProps>> = ({
                 )}
               </div>
             </ViewTransition>
-            <ViewTransition name={`indicator-${id}`}>
+            <ViewTransition name={`indicator-${id}`} default={transitionClass}>
               <div className={folderIndicatorStyle}>
                 {type === "window" &&
                   (isOpen ? <FaRegWindowRestore /> : <FaRegWindowMaximize />)}
@@ -77,7 +80,10 @@ export const Folder: FC<PropsWithChildren<FolderProps>> = ({
           </div>
           {(settings?.contextMenus === "contextMenuOptionBoth" ||
             settings?.contextMenus === "contextMenuOptionDisplayed") && (
-            <ViewTransition name={`folder-context-menu-${id}`}>
+            <ViewTransition
+              name={`folder-context-menu-${id}`}
+              default={transitionClass}
+            >
               <div>
                 <FloatingMenuButton dragId={id} className={folderActionsStyle}>
                   <TiThMenu />
@@ -86,12 +92,13 @@ export const Folder: FC<PropsWithChildren<FolderProps>> = ({
             </ViewTransition>
           )}
         </header>
-        <ViewTransition name={`background-${id}`}>
+        <ViewTransition name={`background-${id}`} default={transitionClass}>
           <div className={folderContentStyle} />
         </ViewTransition>
         {isOpen && (
           <ViewTransition
             name={`contents-${id}`}
+            default={transitionClass}
             enter="folder-appear"
             exit="folder-disappear"
           >

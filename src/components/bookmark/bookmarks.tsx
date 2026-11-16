@@ -14,7 +14,8 @@ import { FileInput } from "../form/fileInput/fileInput";
 import { useTobyImport } from "../../util/toby.import";
 
 export const Bookmarks: FC = () => {
-  const { bookmarks, searchQuery, displayBookmarks } = useBookmarkContext();
+  const { bookmarks, loading, searchQuery, displayBookmarks } =
+    useBookmarkContext();
 
   const importToby = useTobyImport();
   const selectFile = useCallback(
@@ -29,7 +30,7 @@ export const Bookmarks: FC = () => {
   return (
     <div className={bookmarksWrapperStyle}>
       <BookmarkActions />
-      {!bookmarks?.length && (
+      {bookmarks?.length === 0 && (
         <div className={bookmarksEmptyStyle}>
           <PiEmptyBold className={bookmarksEmptyIconStyle} />
           <h2>No Bookmarks!</h2>
@@ -49,7 +50,11 @@ export const Bookmarks: FC = () => {
         !!searchQuery?.trim() && (
           <p style={{ padding: "0 0 1rem" }}>No bookmarks match your search.</p>
         )}
-      <section className={bookmarksStyle} data-grid-container>
+      <section
+        className={bookmarksStyle}
+        data-grid-container
+        aria-busy={loading}
+      >
         {displayBookmarks?.map((bookmark) => (
           <Bookmark key={bookmark.id} node={bookmark} />
         ))}

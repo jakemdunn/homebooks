@@ -1,11 +1,5 @@
-import {
-  FC,
-  startTransition,
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
+import { FC, useCallback, useEffect, useMemo, useState } from "react";
+import { startRegionTransition } from "../../util/viewTransitionRegion";
 import browser from "webextension-polyfill";
 import {
   tabsActionsStyle,
@@ -114,7 +108,7 @@ export const TabsProvider: FC = () => {
 
   const onFolderClick = useCallback(
     (windowId: string) => () => {
-      startTransition(() =>
+      startRegionTransition(["windows"], () =>
         setClosedTabs((prev) => {
           const updated = new Set([...prev]);
           if (prev.has(windowId)) {
