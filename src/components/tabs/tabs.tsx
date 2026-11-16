@@ -11,6 +11,7 @@ import { WindowComponent } from "./window";
 import { isTabUrlShownInTabsColumn } from "../../util/restrictedTabUrl";
 import { PiAppWindowFill } from "react-icons/pi";
 import { useResizeDetector } from "react-resize-detector";
+import { HEIGHT_ONLY_ONCE_PER_FRAME } from "../../util/resizeDetection";
 import { assignInlineVars } from "@vanilla-extract/dynamic";
 
 export const TabsProvider: FC = () => {
@@ -123,7 +124,7 @@ export const TabsProvider: FC = () => {
     [],
   );
 
-  const { height, ref } = useResizeDetector();
+  const { height, ref } = useResizeDetector(HEIGHT_ONLY_ONCE_PER_FRAME);
   const topOffset = useMemo(() => (height ?? 0) + 100, [height]);
 
   return (

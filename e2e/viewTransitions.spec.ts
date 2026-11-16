@@ -1,5 +1,6 @@
 import type { BrowserContext, Page } from "@playwright/test";
 import { bookmarks, expect, test } from "./support/extension";
+import { drag } from "./support/drag";
 
 type Recorded = { started: number; participants: string[][] };
 
@@ -160,4 +161,31 @@ test("expanding a Folder animates only that Folder and what it moves", async ({
   expect(
     participants.filter((name) => /(^|-)(window|tab)-/.test(name)),
   ).toEqual([]);
+});
+
+test("a Peek opens its Folder with a view transition", async ({
+  context,
+  openHomebooks,
+}) => {
+  await recordViewTransitions(context);
+  const homebooks = await openHomebooks([
+    { title: "Folder", children: bookmarks("Inside") },
+    ...bookmarks("B1"),
+  ]);
+  const folder = `folder-${homebooks.ids["Folder"]}`;
+  const { started } = await readTransitions(homebooks.page);
+
+  await drag(homebooks.item("B1"), {
+    onto: homebooks.item("Folder"),
+    at: "in",
+    hold: 1200,
+    beforeRelease: async () => {
+      await expect(
+        homebooks.page.getByText("Inside", { exact: true }),
+      ).toBeVisible();
+      const recorded = await readTransitions(homebooks.page);
+      expect(recorded.started).toBeGreaterThan(started);
+      expect(recorded.participants.flat()).toContain(`contents-${folder}`);
+    },
+  });
 });

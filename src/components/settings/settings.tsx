@@ -1,4 +1,4 @@
-import { FC, PropsWithChildren, useCallback, useEffect } from "react";
+import { FC, PropsWithChildren, useCallback, useEffect, useState } from "react";
 import { RiSettings4Fill } from "react-icons/ri";
 import HomeBooksIcon from "/icon/homebooks.svg?url";
 import {
@@ -39,6 +39,27 @@ const SettingsUpdate: FC = () => {
   return null;
 };
 
+/**
+ * Whether the panel has finished closing: true once its close transition
+ * ends, and straight away on load. Its content is then skipped by layout, so
+ * page resizes (Chrome's split view sends dozens a second) don't make its
+ * Folder Select re-measure and re-render. If the transition never ends (it
+ * was interrupted, or reduced motion removed it), the content just stays
+ * laid out.
+ */
+const usePanelClosed = (open: boolean) => {
+  const [settled, setSettled] = useState({ open, done: true });
+  if (settled.open !== open) setSettled({ open, done: false });
+  const onTransitionEnd = useCallback(
+    (event: React.TransitionEvent<HTMLElement>) => {
+      if (event.target === event.currentTarget)
+        setSettled((current) => ({ ...current, done: true }));
+    },
+    [],
+  );
+  return { closed: !open && settled.done, onTransitionEnd };
+};
+
 export const Settings: FC<PropsWithChildren> = ({ children }) => {
   const [open, setOpen] = useStorage<boolean>(
     SETTINGS_PANEL_VISIBLE,
@@ -62,6 +83,9 @@ export const Settings: FC<PropsWithChildren> = ({ children }) => {
     },
     [tobyImport],
   );
+  const { closed: contentSkipped, onTransitionEnd: onPanelTransitionEnd } =
+    usePanelClosed(!!open);
+
   const classNames = useConditionalClassNames(
     {
       open: () => !!open,
@@ -125,8 +149,16 @@ export const Settings: FC<PropsWithChildren> = ({ children }) => {
           </button>
         </h1>
       </header>
-      <section className={classNames} data-settings inert={!open}>
-        <div className={settingsContentStyle}>
+      <section
+        className={classNames}
+        data-settings
+        inert={!open}
+        onTransitionEnd={onPanelTransitionEnd}
+      >
+        <div
+          className={settingsContentStyle}
+          style={contentSkipped ? { contentVisibility: "hidden" } : undefined}
+        >
           <h2 className={settingsHeaderStyle}>Settings</h2>
           <Formik<SettingsData>
             initialValues={settingsData}

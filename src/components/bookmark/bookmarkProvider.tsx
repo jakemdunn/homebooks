@@ -9,7 +9,7 @@ import {
 } from "react";
 import browser from "webextension-polyfill";
 import { BookmarkState, BookmarkContext } from "./bookmarkContext";
-import { useDragContext } from "../drag/dragContext";
+import { usePeekedIds } from "../drag/dragContext";
 import { parseDragId } from "../drag/dragProvider.util";
 import { useSettingsStorage } from "../../util/storage.types";
 import {
@@ -59,7 +59,7 @@ export const BookmarkProvider: FC<PropsWithChildren> = (props) => {
     "sync",
   );
 
-  const dragState = useDragContext();
+  const peekedIds = usePeekedIds();
 
   // Starts from the bookmarks last read for this Root Folder, if any, so a
   // new tab shows them before the bookmarks API answers.
@@ -178,12 +178,12 @@ export const BookmarkProvider: FC<PropsWithChildren> = (props) => {
     () => [
       ...new Set<string>([
         ...expandedSource,
-        ...Array.from(dragState.peekedIds).map(
+        ...Array.from(peekedIds).map(
           (peekedId) => parseDragId(peekedId)[1],
         ),
       ]).values(),
     ],
-    [dragState.peekedIds, expandedSource],
+    [peekedIds, expandedSource],
   );
 
   const toggle = useCallback(

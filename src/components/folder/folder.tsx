@@ -13,7 +13,7 @@ import {
 import { bookmarksStyle } from "../bookmark/bookmarks.css";
 import { useConditionalClassNames } from "../../util/useConditionalClassNames";
 import { DragId } from "../drag/dragProvider.util";
-import { useDragContext } from "../drag/dragContext";
+import { useDragSelector } from "../drag/dragContext";
 import { useSettingsStorage } from "../../util/storage.types";
 import { FaRegWindowMaximize, FaRegWindowRestore } from "react-icons/fa6";
 import { FaRegFolder, FaRegFolderOpen } from "react-icons/fa6";
@@ -44,11 +44,11 @@ export const Folder: FC<PropsWithChildren<FolderProps>> = ({
   type = "bookmark",
   ...props
 }) => {
-  const dragState = useDragContext();
+  const dragging = useDragSelector((state) => state.sourceIds.has(id));
   const [settings] = useSettingsStorage();
   const folderClassNames = useConditionalClassNames(
     {
-      dragging: () => dragState.sourceIds.has(id),
+      dragging: () => dragging,
       expanded: () => isOpen ?? false,
     },
     folderStyle,

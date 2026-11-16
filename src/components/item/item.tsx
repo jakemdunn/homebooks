@@ -14,7 +14,7 @@ import {
   itemImageStyle,
   itemActionsStyle,
 } from "./item.css";
-import { useDragContext } from "../drag/dragContext";
+import { useDragSelector } from "../drag/dragContext";
 import { useConditionalClassNames } from "../../util/useConditionalClassNames";
 import { DragId } from "../drag/dragProvider.util";
 import { TiThMenu } from "react-icons/ti";
@@ -42,11 +42,11 @@ export const Item: FC<PropsWithChildren<ItemProps>> = ({
   ...props
 }) => {
   // TODO: Only scale title if it's a double line on hover
-  const dragState = useDragContext();
+  const dragging = useDragSelector((state) => state.sourceIds.has(id));
   const [settings] = useSettingsStorage();
   const itemClassNames = useConditionalClassNames(
     {
-      dragging: () => dragState.sourceIds.has(id),
+      dragging: () => dragging,
     },
     itemWrapperStyle,
   );

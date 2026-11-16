@@ -1,214 +1,150 @@
 import {
+  DragEvent,
   FC,
-  useCallback,
+  PropsWithChildren,
   useEffect,
   useMemo,
-  useReducer,
   useRef,
   useState,
 } from "react";
-import { indicatorStyle } from "./dragProvider.css";
 import {
   DataTransferSource,
+  getEventData,
   getSources,
   processDataTransfer,
-  useGetEventData,
 } from "./dragProvider.util";
-import { DragContextProps, DragContext } from "./dragContext";
+import {
+  DragContext,
+  DragContextValue,
+  DragSurfaceHandlers,
+} from "./dragContext";
 import { getDropPosition } from "./dropPosition";
+import { dropIndicatorBounds } from "./dropIndicatorBounds";
+import { createDragStore, DragStore } from "./dragStore";
+import { DragId } from "./dragTypes";
 import {
   regionOf,
   startRegionTransition,
 } from "../../util/viewTransitionRegion";
-import { dragReducer, initialDragState } from "./dragReducer";
 
-export const DragProvider: FC<React.PropsWithChildren> = ({ children }) => {
-  const { eventData, getEventData } = useGetEventData();
-  const [dragState, dragDispatch] = useReducer(dragReducer, initialDragState);
-  const [sources, setSources] = useState<DataTransferSource[]>([]);
-  useEffect(() => {
-    (async () => {
-      const updatedSources =
-        (await getSources([...dragState.sourceIds], true)) ?? [];
-      setSources(updatedSources);
-    })();
-  }, [dragState.sourceIds]);
+/** How long a Drag Source must rest "in" a container before it Peeks. */
+const PEEK_DELAY = 700;
 
-  const onDragStart = useCallback<React.DragEventHandler<HTMLElement>>(
-    (event) => {
-      const { id, target } = getEventData(event);
-      if (!id || !target) return;
-      dragDispatch({
-        action: "startDrag",
-        id,
-      });
-    },
-    [getEventData],
-  );
+const isContainer = (id: DragId) =>
+  !!document
+    .querySelector(`[data-drag-id="${id}"]`)
+    ?.attributes.getNamedItem("data-container");
 
-  const onDragEnd = useCallback<React.DragEventHandler<HTMLElement>>(() => {
-    dragDispatch({
-      action: "endDrag",
+/**
+ * Peeks a container once a Drag Source has rested "in" it for PEEK_DELAY.
+ * Driven by the store, so the provider itself never re-renders mid-drag.
+ * The Peek is dispatched inside a transition so its Folder animates open
+ * (see usePeekedIds).
+ */
+const peekWhenResting = (store: DragStore) => {
+  let resting: DragId | undefined;
+  let timeout: ReturnType<typeof setTimeout> | undefined;
+  const unsubscribe = store.subscribe(() => {
+    const { destinationId, position } = store.getState();
+    const next = position === "in" ? destinationId : undefined;
+    if (next === resting) return;
+    resting = next;
+    clearTimeout(timeout);
+    if (next && isContainer(next))
+      timeout = setTimeout(
+        () =>
+          startRegionTransition([regionOf(next)], () =>
+            store.dispatch({ action: "addPeek", id: next }),
+          ),
+        PEEK_DELAY,
+      );
+  });
+  return () => {
+    unsubscribe();
+    clearTimeout(timeout);
+  };
+};
+
+/** Keeps `sources` holding the bookmark data of the current Drag Sources. */
+const syncSourcesFromStore = (
+  store: DragStore,
+  sources: { current: DataTransferSource[] },
+) => {
+  let synced = store.getState().sourceIds;
+  return store.subscribe(() => {
+    const { sourceIds } = store.getState();
+    if (sourceIds === synced) return;
+    synced = sourceIds;
+    getSources([...sourceIds], true).then((found) => {
+      if (store.getState().sourceIds === sourceIds)
+        sources.current = found ?? [];
     });
-  }, []);
+  });
+};
 
-  const onDragLeave = useCallback<React.DragEventHandler<HTMLElement>>(
-    (event) => {
-      const { id, target } = getEventData(event);
-      if (!id || !target) return;
-      dragDispatch({
-        action: "removeDestination",
-      });
-    },
-    [getEventData],
-  );
+/** The Drag Source or Drop Destination under an event, if it's one of ours. */
+const dragTargetOf = (event: DragEvent<HTMLElement>) => {
+  const { id, target } = getEventData(event);
+  return id && target ? { id, target } : undefined;
+};
 
-  const onDragOver = useCallback<React.DragEventHandler<HTMLElement>>(
-    (event) => {
-      const { id, target } = getEventData(event);
-      if (!id || !target) return;
-      event.preventDefault();
-      dragDispatch({
-        action: "setDestination",
-        id,
-        position: getDropPosition(
-          target.getBoundingClientRect(),
+export const DragProvider: FC<PropsWithChildren> = ({ children }) => {
+  const [store] = useState(createDragStore);
+  const sources = useRef<DataTransferSource[]>([]);
+
+  useEffect(() => peekWhenResting(store), [store]);
+  useEffect(() => syncSourcesFromStore(store, sources), [store]);
+
+  const dragSurfaceHandlers = useMemo<DragSurfaceHandlers>(
+    () => ({
+      onDragStart: (event) => {
+        const dragged = dragTargetOf(event);
+        if (dragged) store.dispatch({ action: "startDrag", id: dragged.id });
+      },
+      onDragEnd: () => store.dispatch({ action: "endDrag" }),
+      onDragLeave: (event) => {
+        if (dragTargetOf(event))
+          store.dispatch({ action: "removeDestination" });
+      },
+      onDragOver: (event) => {
+        const over = dragTargetOf(event);
+        if (!over) return;
+        event.preventDefault();
+        const position = getDropPosition(
+          over.target.getBoundingClientRect(),
           event.clientX,
           event.clientY,
-        ),
-      });
-    },
-    [getEventData],
-  );
-
-  const onDrop = useCallback<React.DragEventHandler<HTMLElement>>(
-    (event) => {
-      const position = dragState.position;
-      const sourceIds = dragState.sourceIds;
-      const { id, target } = getEventData(event);
-
-      dragDispatch({
-        action: "endDrag",
-      });
-
-      const droppedOnSelf = id && sourceIds.has(id);
-      if (droppedOnSelf || !id || !target || !position) return;
-
-      // TODO: Handle file drop for Toby Import
-
-      processDataTransfer(event, position);
-      event.preventDefault();
-    },
-    [dragState.position, dragState.sourceIds, getEventData],
-  );
-
-  const [indicator, setIndicator] = useState<React.CSSProperties>({});
-  useEffect(() => {
-    if (!dragState.destinationId) {
-      setIndicator({});
-      return;
-    }
-    const { target } = eventData.current ?? {};
-    const container = target?.closest("[data-grid-container]");
-    if (!target || !container) {
-      setIndicator({});
-      return;
-    }
-
-    const targetBounds = target.getBoundingClientRect();
-    const containerBounds = container.getBoundingClientRect();
-
-    switch (dragState.position) {
-      case "left":
-        setIndicator({
-          width: 0,
-          height: targetBounds.height - 15,
-          top: targetBounds.top + 5,
-          left: targetBounds.left - 2,
+        );
+        const { destinationId, position: shown } = store.getState();
+        // Measure the marker only when it moves: dragover fires constantly.
+        if (destinationId === over.id && shown === position) return;
+        store.dispatch({
+          action: "setDestination",
+          id: over.id,
+          position,
+          indicator: dropIndicatorBounds(over.target, position),
         });
-        break;
-      case "right":
-        setIndicator({
-          width: 0,
-          height: targetBounds.height - 15,
-          top: targetBounds.top + 5,
-          left: targetBounds.right - 2,
-        });
-        break;
-      case "top":
-        setIndicator({
-          width: containerBounds.width - 15,
-          height: 0,
-          top: targetBounds.top - 2,
-          left: containerBounds.left + 5,
-        });
-        break;
-      case "bottom":
-        setIndicator({
-          width: containerBounds.width - 15,
-          height: 0,
-          top: targetBounds.bottom - 2,
-          left: containerBounds.left + 5,
-        });
-        break;
-      case "in":
-        setIndicator({
-          width: `calc(${targetBounds.width}px - 0.5rem)`,
-          height: `calc(${targetBounds.height}px - 0.5rem)`,
-          top: `calc(${targetBounds.top}px + 0.25rem)`,
-          left: `calc(${targetBounds.left}px + 0.25rem)`,
-        });
-        break;
-    }
-  }, [dragState, eventData]);
+      },
+      onDrop: (event) => {
+        const { position, sourceIds } = store.getState();
+        const dropped = dragTargetOf(event);
+        store.dispatch({ action: "endDrag" });
 
-  const dragOverTimeout = useRef<NodeJS.Timeout>(undefined);
-  useEffect(() => {
-    const isContainer = !!(
-      dragState.position === "in" &&
-      dragState.destinationId &&
-      document
-        .querySelector(`[data-drag-id="${dragState.destinationId}"]`)
-        ?.attributes.getNamedItem("data-container")
-    );
-    if (isContainer) {
-      dragOverTimeout.current = setTimeout(() => {
-        const id = dragState.destinationId!;
-        startRegionTransition([regionOf(id)], () => {
-          dragDispatch({ action: "addPeek", id });
-        });
-      }, 700);
-    }
-    return () => clearTimeout(dragOverTimeout.current);
-  }, [dragState.destinationId, dragState.position]);
+        if (!dropped || sourceIds.has(dropped.id) || !position) return;
 
-  const dragSurfaceHandlers = useMemo(
-    () => ({
-      onDragStart,
-      onDragEnd,
-      onDragLeave,
-      onDragOver,
-      onDrop,
-    }),
-    [onDragStart, onDragEnd, onDragLeave, onDragOver, onDrop],
-  );
+        // TODO: Handle file drop for Toby Import
 
-  const dragContextState = useMemo<DragContextProps>(
-    () => ({
-      ...dragState,
-      sources,
-      dragSurfaceHandlers,
-      dragIndicator: {
-        className: indicatorStyle,
-        style: indicator,
+        processDataTransfer(event, position);
+        event.preventDefault();
       },
     }),
-    [dragState, sources, dragSurfaceHandlers, indicator],
+    [store],
   );
 
-  return (
-    <DragContext.Provider value={dragContextState}>
-      {children}
-    </DragContext.Provider>
+  const value = useMemo<DragContextValue>(
+    () => ({ store, dragSurfaceHandlers, sources }),
+    [store, dragSurfaceHandlers],
   );
+
+  return <DragContext.Provider value={value}>{children}</DragContext.Provider>;
 };

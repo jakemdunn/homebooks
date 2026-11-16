@@ -2,6 +2,7 @@ import { FC, useCallback, useEffect, useRef, useState } from "react";
 import { useResizeDetector } from "react-resize-detector";
 import { contentStyle, wrapperStyle } from "./heightToggle.css";
 import { useConditionalClassNames } from "../../util/useConditionalClassNames";
+import { HEIGHT_ONLY_ONCE_PER_FRAME } from "../../util/resizeDetection";
 
 export const HeightToggle: FC<
   { hidden: boolean } & React.DetailedHTMLProps<
@@ -9,7 +10,7 @@ export const HeightToggle: FC<
     HTMLDivElement
   >
 > = ({ hidden, ...props }) => {
-  const { height, ref } = useResizeDetector();
+  const { height, ref } = useResizeDetector(HEIGHT_ONLY_ONCE_PER_FRAME);
   const [transitioning, setTransitioning] = useState(false);
   const wrapperClassNames = useConditionalClassNames(
     {

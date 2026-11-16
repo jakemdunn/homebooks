@@ -1,15 +1,25 @@
-import type { DragState } from "./dragContext";
-import type { DragId } from "./dragTypes";
+import type { CSSProperties } from "react";
+import type { DragId, DragPosition } from "./dragTypes";
+
+export interface DragState {
+  sourceIds: Set<DragId>;
+  destinationId?: DragId;
+  position?: DragPosition;
+  /** Where the drop marker is drawn for the Drop Position. */
+  indicator?: CSSProperties;
+  peekedIds: Set<DragId>;
+}
 
 export type DragAction =
   | {
-      action: "addSource" | "removeSource" | "addPeek";
+      action: "addPeek";
       id: DragId;
     }
   | {
       action: "setDestination";
       id: DragId;
-      position: DragState["position"];
+      position: DragPosition;
+      indicator: CSSProperties;
     }
   | {
       action: "startDrag";
@@ -22,8 +32,10 @@ export type DragAction =
 export const initialDragState: DragState = {
   sourceIds: new Set(),
   peekedIds: new Set(),
-  dragging: false,
 };
+
+const isIdle = (state: DragState) =>
+  !state.sourceIds.size && !state.peekedIds.size && !state.destinationId;
 
 export const dragReducer = (
   state: DragState,
@@ -33,51 +45,28 @@ export const dragReducer = (
     case "startDrag": {
       const sourceIds = new Set(state.sourceIds);
       sourceIds.add(action.id);
-      return {
-        ...state,
-        dragging: true,
-        sourceIds,
-      };
-    }
-    case "endDrag":
-      return {
-        ...state,
-        dragging: false,
-        sourceIds: new Set(),
-        peekedIds: new Set(),
-        destinationId: undefined,
-        position: undefined,
-      };
-    case "addSource": {
-      if (state.sourceIds.has(action.id)) {
-        return state;
-      }
-      const sourceIds = new Set([...state.sourceIds, action.id]);
       return { ...state, sourceIds };
     }
+    case "endDrag":
+      // A drop ends the drag, then dragend ends it again.
+      return isIdle(state) ? state : initialDragState;
     case "addPeek": {
       if (state.peekedIds.has(action.id)) {
         return state;
       }
       const peekedIds = new Set([...state.peekedIds, action.id]);
-      return {
-        ...state,
-        peekedIds,
-      };
-    }
-    case "removeSource": {
-      if (!state.sourceIds.has(action.id)) {
-        return state;
-      }
-      const sourceIds = new Set(state.sourceIds);
-      sourceIds.delete(action.id);
-      return { ...state, sourceIds };
+      return { ...state, peekedIds };
     }
     case "removeDestination": {
       if (!state.destinationId) {
         return state;
       }
-      return { ...state, destinationId: undefined, position: undefined };
+      return {
+        ...state,
+        destinationId: undefined,
+        position: undefined,
+        indicator: undefined,
+      };
     }
     case "setDestination":
       if (
@@ -90,6 +79,7 @@ export const dragReducer = (
         ...state,
         destinationId: action.id,
         position: action.position,
+        indicator: action.indicator,
       };
   }
 };

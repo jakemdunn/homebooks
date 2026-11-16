@@ -1,6 +1,6 @@
 import browser, { Bookmarks } from "webextension-polyfill";
 import { useDragContext } from "./dragContext";
-import { useCallback, useMemo, useRef } from "react";
+import { useCallback, useMemo } from "react";
 import {
   DATA_TYPE_KEYS,
   parseDataTransfer,
@@ -10,7 +10,6 @@ import type { DragId, DragPosition, DragType } from "./dragTypes";
 import { isTabUrlShownInTabsColumn } from "../../util/restrictedTabUrl";
 
 export type { DragId, DragPosition, DragType };
-
 
 export const getEventData = (
   event: React.DragEvent<HTMLElement> | React.MouseEvent<HTMLElement>,
@@ -40,20 +39,6 @@ export const getEventData = (
     target: target ?? undefined,
     id: target?.getAttribute("data-drag-id") as DragId,
   };
-};
-
-export const useGetEventData = () => {
-  const eventData = useRef<ReturnType<typeof getEventData> | undefined>(
-    undefined,
-  );
-  const trackedGetEventData = useCallback<typeof getEventData>(
-    (...params: Parameters<typeof getEventData>) => {
-      eventData.current = getEventData(...params);
-      return eventData.current;
-    },
-    [],
-  );
-  return { eventData, getEventData: trackedGetEventData };
 };
 
 const processBookmarkMove = async (
@@ -258,14 +243,15 @@ export const useSetDataTransfer = (
   source: DataTransferSource | DataTransferSource[],
   sourceId: DragId,
 ) => {
-  const dragContext = useDragContext();
+  // Read when the drag starts, not subscribed to: every tile uses this.
+  const { store, sources: currentSources } = useDragContext();
 
   return useCallback<React.DragEventHandler<HTMLElement>>(
     (event) => {
       if (event.dataTransfer.types.includes(DATA_TYPE_KEYS.sources)) return;
 
-      const sourceIds = [...dragContext.sourceIds, sourceId];
-      const sources = [...dragContext.sources, source].flat();
+      const sourceIds = [...store.getState().sourceIds, sourceId];
+      const sources = [...currentSources.current, source].flat();
 
       event.dataTransfer.dropEffect = "move";
       event.dataTransfer.setData(
@@ -291,6 +277,6 @@ export const useSetDataTransfer = (
         links.map(({ url }) => url).join(", "),
       );
     },
-    [dragContext.sourceIds, dragContext.sources, source, sourceId],
+    [store, currentSources, source, sourceId],
   );
 };
