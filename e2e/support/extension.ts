@@ -21,6 +21,7 @@ import {
   type SeedNode,
 } from "./seed";
 import { openPopup } from "./popup";
+import { SITE_ICONS_KEY } from "../../src/util/siteIconCache";
 import {
   createTabs,
   readNewWindowsTabUrls,
@@ -91,6 +92,13 @@ const stateReaders = (serviceWorker: Worker, page: Page, rootId: string) => ({
   openTabIds: () => readOpenTabIds(serviceWorker),
   openTabUrls: () => readOpenTabUrls(serviceWorker),
   windowIds: () => readWindowIds(serviceWorker),
+  /** Hosts the Site Icon cache has an entry for, found or missing. */
+  siteIconHosts: () =>
+    serviceWorker.evaluate(
+      async (key) =>
+        Object.keys((await chrome.storage.local.get(key))[key] ?? {}),
+      SITE_ICONS_KEY,
+    ),
   newWindowsTabUrls: (windowIdsBefore: string[]) =>
     readNewWindowsTabUrls(serviceWorker, windowIdsBefore),
 });

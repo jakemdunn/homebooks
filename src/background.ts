@@ -3,8 +3,37 @@ import { BOOKMARK_MENU_ACTIONS } from "./util/menu.bookmark";
 import { FOLDER_MENU_ACTIONS } from "./util/menu.folder";
 import { ExtensionStorageData } from "./util/storage.types";
 import { installChromiumBookmarksShim } from "./util/chromiumBookmarksShim";
+import { createSiteIconRecorder } from "./util/siteIconRecorder";
+import { isSiteIconMessage } from "./util/siteIconMessages";
 
 installChromiumBookmarksShim();
+
+const siteIconRecorder = createSiteIconRecorder(browser);
+const logSiteIconError = (error: unknown) =>
+  console.error("Couldn't update the Site Icon cache.", error);
+
+browser.tabs.onUpdated.addListener((_tabId, change, tab) => {
+  if (change.favIconUrl)
+    siteIconRecorder.tabUpdated(tab).catch(logSiteIconError);
+});
+browser.bookmarks.onCreated.addListener((_id, bookmark) => {
+  siteIconRecorder.bookmarkCreated(bookmark).catch(logSiteIconError);
+});
+browser.bookmarks.onRemoved.addListener(() => {
+  siteIconRecorder.bookmarkRemoved().catch(logSiteIconError);
+});
+browser.bookmarks.onChanged.addListener((_id, change) => {
+  siteIconRecorder.bookmarkChanged(change).catch(logSiteIconError);
+});
+browser.runtime.onMessage.addListener((message: unknown) => {
+  if (!isSiteIconMessage(message)) return undefined;
+  const record =
+    message.type === "siteIcons.lookedUp"
+      ? siteIconRecorder.lookedUp(message.found)
+      : siteIconRecorder.tabsBookmarked(message.found);
+  // Answering once recorded lets the sender wait for it.
+  return record.catch(logSiteIconError);
+});
 
 const handlePermissionsUpdate = async () => {
   const visible = await browser.extension.isAllowedIncognitoAccess();

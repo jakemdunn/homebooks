@@ -18,6 +18,7 @@ import { useBookmarkContext } from "./bookmarkContext";
 import { bookmarkEditInputStyle, bookmarkEditRowStyle } from "./bookmark.css";
 import { bookmarksStyle } from "./bookmarks.css";
 import { BookmarkFolderEmptyState } from "./bookmarkFolderEmpty";
+import { SiteIcon } from "../siteIcon/siteIcon";
 
 function useDismissOnOutsideClick(
   ref: RefObject<HTMLElement | null>,
@@ -150,13 +151,6 @@ const BookmarkItemEditing: FC<{
 
   useDismissOnOutsideClick(wrapRef, true, dismiss);
 
-  let host = "";
-  try {
-    host = new URL(urlStr).host;
-  } catch {
-    host = "";
-  }
-
   return (
     <div
       ref={wrapRef}
@@ -167,14 +161,8 @@ const BookmarkItemEditing: FC<{
       draggable={false}
     >
       <div style={{ display: "flex", gap: "0.35rem", alignItems: "center" }}>
-        {host ? (
-          <img
-            alt=""
-            src={`https://www.google.com/s2/favicons?domain=${host}&sz=32`}
-            width={32}
-            height={32}
-          />
-        ) : null}
+        {/* The saved URL's icon: one being typed isn't a Bookmark yet. */}
+        {node.url ? <SiteIcon url={node.url} /> : null}
         <input
           className={bookmarkEditInputStyle}
           style={{ flex: 1 }}
@@ -283,7 +271,7 @@ export const Bookmark: FC<{ node: browser.Bookmarks.BookmarkTreeNode }> = ({
       draggable
       onDragStart={onDragStart}
       details={url.hostname}
-      favicon={`https://www.google.com/s2/favicons?domain=${url.host}&sz=32`}
+      icon={<SiteIcon url={node.url} />}
       url={node.url}
       {...props}
     >

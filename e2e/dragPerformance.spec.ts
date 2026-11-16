@@ -20,6 +20,19 @@ const startDragOn = async (homebooks: HomebooksPage, title: string) => {
   await homebooks.page.mouse.move(start.x + 10, start.y + 10, { steps: 2 });
 };
 
+/**
+ * Waits until every Bookmark's Site Icon has been looked up: storing the
+ * results re-renders the page, which would count against the drag. Each
+ * seeded Bookmark has a host of its own.
+ */
+const waitForSiteIcons = (homebooks: HomebooksPage, hosts: number) =>
+  expect
+    // A hundred unresolvable hosts take a few seconds to fail.
+    .poll(async () => (await homebooks.siteIconHosts()).length, {
+      timeout: 20_000,
+    })
+    .toBe(hosts);
+
 /** Waits until nothing is still rendering, then starts counting afresh. */
 const settleRenders = (page: Page) =>
   expect
@@ -38,6 +51,8 @@ test.describe("mid-drag re-renders", () => {
       { title: "F2", children: bookmarks("I2") },
       ...bookmarks(...titles),
     ]);
+    // The collapsed Folders' Bookmarks aren't shown, so aren't looked up.
+    await waitForSiteIcons(homebooks, titles.length);
     const end = await centerOf(homebooks, "B20");
     await startDragOn(homebooks, "B0");
     await settleRenders(homebooks.page);
@@ -56,6 +71,7 @@ test.describe("mid-drag re-renders", () => {
   }) => {
     await recordRenders(context);
     const homebooks = await openHomebooks(bookmarks("B1", "B2", "B3"));
+    await waitForSiteIcons(homebooks, 3);
     const page = homebooks.page;
     const over = await centerOf(homebooks, "B3");
     await startDragOn(homebooks, "B1");
@@ -95,6 +111,8 @@ test.describe("mid-drag re-renders", () => {
       ],
       { expanded: ["Open"], viewport: { width: 1400, height: 900 } },
     );
+    // Only the open Folder's contents and the top level are shown.
+    await waitForSiteIcons(homebooks, inside.length + titles.length);
     const page = homebooks.page;
     await startDragOn(homebooks, "B0");
     await settleRenders(page);

@@ -22,6 +22,10 @@ _Avoid_: Group, parent
 Homebooks' own menu of actions for a Bookmark or Folder, opened by the trigger chosen in Settings: right-click, a displayed menu button, or both.
 _Avoid_: Right Click Menu, context menu, floating menu
 
+**Site Icon**:
+The small image that identifies a website, shown on its Bookmarks and Tabs.
+_Avoid_: Favicon, logo
+
 ### Drag and drop
 
 **Drag Source**:

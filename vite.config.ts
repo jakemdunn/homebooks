@@ -11,8 +11,9 @@ import {
   webExtTarget,
   type DevTarget,
 } from "./build/devBrowser";
+import { withSiteIconPermission } from "./build/manifest";
 
-function generateManifest() {
+function generateManifest(target: DevTarget) {
   const manifest = readJsonFile("src/manifest.json");
   const pkg = readJsonFile("package.json");
   return {
@@ -20,6 +21,7 @@ function generateManifest() {
     description: pkg.description,
     version: pkg.version,
     ...manifest,
+    permissions: withSiteIconPermission(target, manifest.permissions),
   };
 }
 
@@ -48,7 +50,7 @@ export default defineConfig(async ({ command }) => {
       react(),
       vanillaExtractPlugin(),
       webExtension({
-        manifest: generateManifest,
+        manifest: () => generateManifest(target),
         browser: target,
         // web-ext only launches a browser from the dev server.
         webExtConfig:

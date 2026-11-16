@@ -1,3 +1,4 @@
+import { IconImage } from "../siteIcon/siteIcon";
 import { FC, useCallback, useMemo } from "react";
 import browser from "webextension-polyfill";
 import { Item } from "../item/item";
@@ -18,7 +19,7 @@ export const Tab: FC<{ value: browser.Tabs.Tab }> = ({ value }) => {
       source: value,
       id: dragId,
     }),
-    [dragId, value]
+    [dragId, value],
   );
   const onDragStart = useSetDataTransfer(source, dragId);
 
@@ -39,7 +40,7 @@ export const Tab: FC<{ value: browser.Tabs.Tab }> = ({ value }) => {
       data-index={value.index}
       details={url.hostname}
       draggable
-      favicon={value.favIconUrl!}
+      icon={<IconImage src={value.favIconUrl} />}
       id={`tab-${value.id}`}
       onClick={onClick}
       onDragStart={onDragStart}

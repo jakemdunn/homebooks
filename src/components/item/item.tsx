@@ -28,7 +28,8 @@ export type ItemProps = Omit<
 > & {
   id: DragId;
   details: ReactNode;
-  favicon: string;
+  /** The item's Site Icon. */
+  icon: ReactNode;
   url?: string;
 };
 
@@ -36,7 +37,7 @@ export const Item: FC<PropsWithChildren<ItemProps>> = ({
   children,
   details,
   id,
-  favicon,
+  icon,
   onClick,
   url,
   ...props
@@ -54,18 +55,13 @@ export const Item: FC<PropsWithChildren<ItemProps>> = ({
     () => (
       <>
         <span className={itemContent}>
-          <img
-            className={itemImageStyle}
-            src={favicon}
-            width={32}
-            height={32}
-          />
+          <span className={itemImageStyle}>{icon}</span>
           <span className={itemTitleStyle}>{children}</span>
         </span>
         <div className={itemDetailsStyle}>{details}</div>
       </>
     ),
-    [children, details, favicon],
+    [children, details, icon],
   );
 
   return (

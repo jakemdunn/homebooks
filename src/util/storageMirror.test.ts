@@ -60,4 +60,39 @@ describe("storage mirror", () => {
       writeStorageMirror("sync", SYNC, unavailableStore),
     ).not.toThrow();
   });
+
+  describe("the Site Icon cache", () => {
+    const LOCAL = {
+      values: { menuVisibility: { a: true }, siteIcons: { "a.test": {} } },
+      known: ["menuVisibility", "siteIcons"],
+    };
+
+    it("is kept in its own copy and read back with the rest", () => {
+      const store = memoryStore();
+      writeStorageMirror("local", LOCAL, store);
+
+      expect(Object.keys(store.items).sort()).toEqual([
+        "homebooks.storage.local",
+        "homebooks.storage.local.siteIcons",
+      ]);
+      expect(readStorageMirror("local", store)).toEqual(LOCAL);
+    });
+
+    it("can't stop the rest being saved when its copy doesn't fit", () => {
+      const store = memoryStore();
+      const full = {
+        ...store,
+        setItem: (key: string, value: string) => {
+          if (key.endsWith(".siteIcons")) throw new Error("QuotaExceededError");
+          store.setItem(key, value);
+        },
+      };
+      writeStorageMirror("local", LOCAL, full);
+
+      expect(readStorageMirror("local", store)).toEqual({
+        values: { menuVisibility: { a: true } },
+        known: ["menuVisibility"],
+      });
+    });
+  });
 });

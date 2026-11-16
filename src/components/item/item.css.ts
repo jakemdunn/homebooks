@@ -1,3 +1,4 @@
+import { ICON_SIZE } from "../siteIcon/siteIcon.css";
 import { style } from "@vanilla-extract/css";
 import { globalTheme } from "../../pages/global.css";
 
@@ -72,10 +73,13 @@ export const itemContent = style({
 });
 
 export const itemImageStyle = style({
+  display: "block",
+  width: ICON_SIZE,
+  height: ICON_SIZE,
   position: "absolute",
   left: "0.75rem",
   top: "50%",
-  marginTop: -16,
+  marginTop: -ICON_SIZE / 2,
 });
 
 export const itemTitleStyle = style({
