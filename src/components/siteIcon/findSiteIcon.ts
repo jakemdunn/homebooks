@@ -54,9 +54,9 @@ export const findSiteIcon = async (
 ): Promise<string | undefined> => {
   const fromBrowser = await findBrowserSiteIcon(pageUrl);
   if (fromBrowser) return fromBrowser;
-  // Chrome drops an extension page's requests for exactly /favicon.ico
-  // without sending them (seen in Chrome for Testing); an empty query
-  // gets through, and sites serve the same file.
+  // The empty query changes nothing for sites, which serve the same file,
+  // but lets e2e tests cover this: Playwright aborts every request whose
+  // URL ends in /favicon.ico.
   const rootIcon = new URL("/favicon.ico?", pageUrl).href;
   return (await loads(rootIcon)) ? rootIcon : undefined;
 };

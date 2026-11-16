@@ -25,12 +25,13 @@ const fakeBrowser = ({
   const local: Record<string, unknown> = { [SITE_ICONS_KEY]: cache };
   const nodes = () =>
     bookmarked.map((url, i) => ({ id: `${i}`, title: "", url }));
+  const reads = { tree: 0 };
   const browser: SiteIconBrowser = {
     bookmarks: {
-      // Like the real search: a substring match on URL (and title).
-      search: async ({ query }) =>
-        nodes().filter(({ url }) => url.includes(query)),
-      getTree: async () => [{ id: "root", title: "", children: nodes() }],
+      getTree: async () => {
+        reads.tree++;
+        return [{ id: "root", title: "", children: nodes() }];
+      },
     },
     tabs: { query: async () => tabs },
     storage: {
@@ -42,6 +43,7 @@ const fakeBrowser = ({
   };
   return {
     bookmarked,
+    reads,
     recorder: createSiteIconRecorder(browser, () => now),
     cache: () => local[SITE_ICONS_KEY] as SiteIconCache,
   };
@@ -116,13 +118,13 @@ describe("a new Bookmark", () => {
   });
 });
 
-describe("Tabs made into Bookmarks", () => {
+describe("Tab icons a page saw", () => {
   it("record their icons, though the Tabs may have closed", async () => {
     const { recorder, cache } = fakeBrowser({
       bookmarked: ["https://a.test/"],
     });
 
-    await recorder.tabsBookmarked([{ host: "a.test", icon: "data:icon-a" }]);
+    await recorder.tabIconsSeen([{ host: "a.test", icon: "data:icon-a" }]);
 
     expect(cache()).toEqual({ "a.test": { icon: "data:icon-a", seen: NOW } });
   });
@@ -217,6 +219,21 @@ describe("a Bookmark's URL changing", () => {
       "c.test": { icon: "data:icon-c", seen: NOW },
     });
   });
+});
+
+it("reads the Bookmarks once however many Tab icons it's given", async () => {
+  const { recorder, reads, cache } = fakeBrowser({
+    bookmarked: ["https://a.test/", "https://b.test/"],
+  });
+
+  await recorder.tabIconsSeen([
+    { host: "a.test", icon: "data:icon-a" },
+    { host: "b.test", icon: "data:icon-b" },
+    { host: "c.test", icon: "data:icon-c" },
+  ]);
+
+  expect(reads.tree).toBe(1);
+  expect(Object.keys(cache()).sort()).toEqual(["a.test", "b.test"]);
 });
 
 it("applies concurrent changes one after another", async () => {

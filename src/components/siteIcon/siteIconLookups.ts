@@ -15,7 +15,8 @@ type Options = {
 };
 
 /**
- * Looks up the Site Icons a page needs, each host once per page. Every
+ * Looks up the Site Icons a page needs, each host once per page, and keeps
+ * what it finds so the page can show it straight away. Every
  * cache change re-renders the page, so results are sent together: once no
  * lookup is still running, or after `sendDelay` while slow ones finish.
  */
@@ -26,6 +27,9 @@ export const createSiteIconLookups = ({
   sendDelay = 1_000,
 }: Options) => {
   const started = new Set<string>();
+  /** Icons found on this page, by host. */
+  const icons = new Map<string, string>();
+  const listeners = new Set<() => void>();
   const finished: FoundSiteIcon[] = [];
   let running = 0;
   let sendTimer: ReturnType<typeof setTimeout> | undefined;
@@ -34,7 +38,12 @@ export const createSiteIconLookups = ({
     clearTimeout(sendTimer);
     sendTimer = undefined;
     if (!finished.length) return;
-    send(finished.splice(0)).catch((error) =>
+    const batch = finished.splice(0);
+    // Shown and stored together: each re-renders the page.
+    for (const { host, icon } of batch) if (icon) icons.set(host, icon);
+    if (batch.some(({ icon }) => icon))
+      listeners.forEach((listener) => listener());
+    send(batch).catch((error) =>
       console.error("Couldn't store Site Icons.", error),
     );
   };
@@ -44,7 +53,7 @@ export const createSiteIconLookups = ({
     started.add(host);
     running++;
     (reason === "stale" ? findInBrowser : find)(pageUrl)
-      .then((icon) => finished.push(icon ? { host, icon } : { host }))
+      .then((icon) => void finished.push(icon ? { host, icon } : { host }))
       .catch((error) => console.error("Couldn't look up a Site Icon.", error))
       .finally(() => {
         running--;
@@ -53,5 +62,13 @@ export const createSiteIconLookups = ({
       });
   };
 
-  return { lookUp };
+  return {
+    lookUp,
+    /** The icon this page found for `host`, before the cache has it. */
+    foundIcon: (host: string) => icons.get(host),
+    subscribe: (listener: () => void) => {
+      listeners.add(listener);
+      return () => void listeners.delete(listener);
+    },
+  };
 };

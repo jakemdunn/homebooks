@@ -9,7 +9,7 @@ import {
 import type { DragId, DragPosition, DragType } from "./dragTypes";
 import { isTabUrlShownInTabsColumn } from "../../util/restrictedTabUrl";
 import { tabSiteIcon } from "../../util/siteIconCache";
-import { sendSiteIcons } from "../../util/siteIconMessages";
+import { siteIconReporter } from "../siteIcon/pageSiteIcons";
 
 export type { DragId, DragPosition, DragType };
 
@@ -73,13 +73,15 @@ const processBookmarkMove = async (
     });
     // Only once its Bookmark exists, so a failed create loses nothing.
     if ("type" in node && node.type === "tab" && node.source.id) {
-      // Sent now: the Tab is gone by the time the background hears of
+      // Reported now: the Tab is gone by the time the background hears of
       // the new Bookmark.
       const icon = tabSiteIcon(node.source);
       if (icon)
-        sendSiteIcons("siteIcons.tabsBookmarked", [icon]).catch((error) =>
-          console.error("Couldn't record a dropped Tab's Site Icon.", error),
-        );
+        siteIconReporter
+          .report("siteIcons.tabsSeen", [icon])
+          .catch((error) =>
+            console.error("Couldn't record a dropped Tab's Site Icon.", error),
+          );
       await browser.tabs.remove(node.source.id);
     }
   };

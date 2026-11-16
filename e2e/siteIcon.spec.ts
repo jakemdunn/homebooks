@@ -136,6 +136,30 @@ test("a Tab dropped onto the Bookmarks keeps its icon", async ({
   await expect(siteIconOf(dropped)).toHaveAttribute("src", TAB_ICON);
 });
 
+test("Site Icons still fill in and reach the cache when the background doesn't answer", async ({
+  context,
+  openHomebooks,
+}) => {
+  await fakeSites(context);
+  // As when Chrome's background service worker isn't listening.
+  await context.addInitScript(() => {
+    chrome.runtime.sendMessage = (() => {
+      throw new Error(
+        "Could not establish connection. Receiving end does not exist.",
+      );
+    }) as typeof chrome.runtime.sendMessage;
+  });
+  const homebooks = await openHomebooks(SEED);
+
+  await expect(siteIconOf(homebooks.item("Alpha"))).toHaveAttribute(
+    "src",
+    ALPHA_ICON,
+  );
+  await expect
+    .poll(async () => (await homebooks.siteIconHosts()).sort())
+    .toEqual(["alpha.test", "beta.test"]);
+});
+
 test("Homebooks asks no third party for anything", async ({
   context,
   openHomebooks,

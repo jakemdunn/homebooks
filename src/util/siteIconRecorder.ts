@@ -16,7 +16,6 @@ import {
 /** The parts of the extension API the recorder uses. */
 export type SiteIconBrowser = {
   bookmarks: {
-    search: (query: { query: string }) => Promise<Bookmarks.BookmarkTreeNode[]>;
     getTree: () => Promise<Bookmarks.BookmarkTreeNode[]>;
   };
   tabs: { query: (query: object) => Promise<Tabs.Tab[]> };
@@ -30,9 +29,10 @@ const hostsIn = (node: Bookmarks.BookmarkTreeNode): string[] => {
 };
 
 /**
- * The only writer of the Site Icon cache, so changes from pages and
- * browser events never overwrite each other. It keeps the cache to
- * bookmarked hosts and never records a private-window Tab's icon.
+ * Writes the Site Icon cache, keeping it to bookmarked hosts and never
+ * recording a private-window Tab's icon. The background's recorder is the
+ * cache's one writer; a page runs its own only when the background doesn't
+ * answer, and the two can then overwrite each other's changes.
  */
 export const createSiteIconRecorder = (
   browser: SiteIconBrowser,
@@ -40,16 +40,14 @@ export const createSiteIconRecorder = (
 ) => {
   const update = createSiteIconUpdater(browser.storage.local);
 
-  const isBookmarked = async (host: string) =>
-    (await browser.bookmarks.search({ query: host })).some(
-      ({ url }) => hostOf(url) === host,
-    );
+  /** Every host a Bookmark has, read in one call. */
+  const bookmarkedHosts = async () =>
+    new Set((await browser.bookmarks.getTree()).flatMap(hostsIn));
 
   const bookmarkedOnly = async (found: FoundSiteIcon[]) => {
-    const kept: FoundSiteIcon[] = [];
-    for (const icon of found)
-      if (await isBookmarked(icon.host)) kept.push(icon);
-    return kept;
+    if (!found.length) return [];
+    const bookmarked = await bookmarkedHosts();
+    return found.filter(({ host }) => bookmarked.has(host));
   };
 
   /** Records Tab icons for the hosts that have a Bookmark. */
@@ -77,9 +75,7 @@ export const createSiteIconRecorder = (
 
   /** Forgets every host no Bookmark has any more. */
   const forgetUnbookmarked = async () => {
-    const bookmarked = new Set(
-      (await browser.bookmarks.getTree()).flatMap(hostsIn),
-    );
+    const bookmarked = await bookmarkedHosts();
     await update((cache) =>
       forgetSiteIcons(
         cache,
@@ -94,8 +90,8 @@ export const createSiteIconRecorder = (
       if (found) await recordTabIcons([found]);
     },
 
-    /** Tabs just made into Bookmarks, which may already have closed. */
-    tabsBookmarked: (found: FoundSiteIcon[]) => recordTabIcons(found),
+    /** Icons of Tabs a page lists, or had dropped onto the Bookmarks. */
+    tabIconsSeen: (found: FoundSiteIcon[]) => recordTabIcons(found),
 
     /** What pages found looking hosts up. */
     lookedUp: async (found: FoundSiteIcon[]) => {

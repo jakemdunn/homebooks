@@ -4,10 +4,13 @@ import { FOLDER_MENU_ACTIONS } from "./util/menu.folder";
 import { ExtensionStorageData } from "./util/storage.types";
 import { installChromiumBookmarksShim } from "./util/chromiumBookmarksShim";
 import { createSiteIconRecorder } from "./util/siteIconRecorder";
-import { isSiteIconMessage } from "./util/siteIconMessages";
+import {
+  isSiteIconMessage,
+  recordSiteIconMessage,
+} from "./util/siteIconMessages";
 
-installChromiumBookmarksShim();
-
+// Registered first, so nothing that runs after can keep a page's Site
+// Icons from arriving.
 const siteIconRecorder = createSiteIconRecorder(browser);
 const logSiteIconError = (error: unknown) =>
   console.error("Couldn't update the Site Icon cache.", error);
@@ -27,13 +30,13 @@ browser.bookmarks.onChanged.addListener((_id, change) => {
 });
 browser.runtime.onMessage.addListener((message: unknown) => {
   if (!isSiteIconMessage(message)) return undefined;
-  const record =
-    message.type === "siteIcons.lookedUp"
-      ? siteIconRecorder.lookedUp(message.found)
-      : siteIconRecorder.tabsBookmarked(message.found);
   // Answering once recorded lets the sender wait for it.
-  return record.catch(logSiteIconError);
+  return recordSiteIconMessage(siteIconRecorder, message).catch(
+    logSiteIconError,
+  );
 });
+
+installChromiumBookmarksShim();
 
 const handlePermissionsUpdate = async () => {
   const visible = await browser.extension.isAllowedIncognitoAccess();

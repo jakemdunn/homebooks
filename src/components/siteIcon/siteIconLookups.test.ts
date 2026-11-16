@@ -82,4 +82,33 @@ describe("looking up Site Icons", () => {
     // Sent even when nothing's found, so the stale icon is checked later.
     expect(sent).toEqual([[{ host: "a.test" }]]);
   });
+
+  it("keeps what it found, to show before the cache has it", async () => {
+    const { lookups, answer } = setUp();
+    const changed = vi.fn();
+    lookups.subscribe(changed);
+    lookups.lookUp("a.test", "https://a.test/", "unknown");
+    lookups.lookUp("b.test", "https://b.test/", "unknown");
+
+    await answer("https://a.test/", "icon-a");
+    await answer("https://b.test/");
+
+    expect(lookups.foundIcon("a.test")).toBe("icon-a");
+    expect(lookups.foundIcon("b.test")).toBeUndefined();
+    expect(changed).toHaveBeenCalled();
+  });
+
+  it("tells the page about a batch of icons once", async () => {
+    const { lookups, answer } = setUp();
+    const changed = vi.fn();
+    lookups.subscribe(changed);
+    lookups.lookUp("a.test", "https://a.test/", "unknown");
+    lookups.lookUp("b.test", "https://b.test/", "unknown");
+
+    await answer("https://a.test/", "icon-a");
+    expect(changed).not.toHaveBeenCalled();
+    await answer("https://b.test/", "icon-b");
+
+    expect(changed).toHaveBeenCalledTimes(1);
+  });
 });

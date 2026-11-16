@@ -1,4 +1,11 @@
-import { FC, useEffect, useMemo, useState } from "react";
+import {
+  FC,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+  useSyncExternalStore,
+} from "react";
 import { useStorage, useStorageAnswered } from "../../util/useStorage";
 import {
   hostOf,
@@ -6,7 +13,7 @@ import {
   parseSiteIconCache,
   SITE_ICONS_KEY,
 } from "../../util/siteIconCache";
-import { sendSiteIcons } from "../../util/siteIconMessages";
+import { siteIconReporter } from "./pageSiteIcons";
 import { findBrowserSiteIcon, findSiteIcon } from "./findSiteIcon";
 import { createSiteIconLookups } from "./siteIconLookups";
 import {
@@ -22,7 +29,7 @@ const PAGE_LOADED = Date.now();
 const lookups = createSiteIconLookups({
   find: findSiteIcon,
   findInBrowser: findBrowserSiteIcon,
-  send: (found) => sendSiteIcons("siteIcons.lookedUp", found),
+  send: (found) => siteIconReporter.report("siteIcons.lookedUp", found),
 });
 
 /** An icon image at the size every Item draws its icon. */
@@ -89,19 +96,28 @@ export const SiteIcon: FC<{ url: string }> = ({ url }) => {
       : lookup.kind === "icon" && lookup.stale
         ? "stale"
         : undefined;
-  // A cached icon that no longer loads shows the letter tile instead.
+  // What this page found, shown before (or without) the cache having it.
+  const foundIcon = useSyncExternalStore(
+    lookups.subscribe,
+    useCallback(() => (host ? lookups.foundIcon(host) : undefined), [host]),
+  );
+  // An icon that no longer loads shows the letter tile instead.
   const [broken, setBroken] = useState<string>();
+  const cached =
+    lookup.kind === "icon" && lookup.icon !== broken ? lookup : undefined;
+  // What the page just found beats a stale or broken cached icon.
+  const icon = cached && !(cached.stale && foundIcon) ? cached.icon : foundIcon;
 
   useEffect(() => {
     // Only once storage has answered, so its cache is the one checked.
     if (host && answered && reason) lookups.lookUp(host, url, reason);
   }, [host, url, answered, reason]);
 
-  return lookup.kind === "icon" && lookup.icon !== broken ? (
+  return icon && icon !== broken ? (
     <IconImage
       data-site-icon="image"
-      src={lookup.icon}
-      onError={() => setBroken(lookup.icon)}
+      src={icon}
+      onError={() => setBroken(icon)}
     />
   ) : (
     <LetterTile host={host} />

@@ -1,13 +1,13 @@
-import browser from "webextension-polyfill";
 import { isRecord } from "./localStore";
 import type { FoundSiteIcon } from "./siteIconCache";
+import type { createSiteIconRecorder } from "./siteIconRecorder";
 
 /**
- * Site Icons pages send to the background, the cache's only writer:
- * lookup results, and the icons of Tabs just made into Bookmarks.
+ * Site Icons a page hands to the cache's writer: what it looked up, and
+ * the icons of Tabs it lists or had dropped onto the Bookmarks.
  */
 export type SiteIconMessage = {
-  type: "siteIcons.lookedUp" | "siteIcons.tabsBookmarked";
+  type: "siteIcons.lookedUp" | "siteIcons.tabsSeen";
   found: FoundSiteIcon[];
 };
 
@@ -16,10 +16,14 @@ export const isSiteIconMessage = (
 ): message is SiteIconMessage =>
   isRecord(message) &&
   (message.type === "siteIcons.lookedUp" ||
-    message.type === "siteIcons.tabsBookmarked") &&
+    message.type === "siteIcons.tabsSeen") &&
   Array.isArray(message.found);
 
-export const sendSiteIcons = (
-  type: SiteIconMessage["type"],
-  found: FoundSiteIcon[],
-) => browser.runtime.sendMessage({ type, found } satisfies SiteIconMessage);
+/** Records a message's Site Icons through `recorder`. */
+export const recordSiteIconMessage = (
+  recorder: ReturnType<typeof createSiteIconRecorder>,
+  { type, found }: SiteIconMessage,
+) =>
+  type === "siteIcons.lookedUp"
+    ? recorder.lookedUp(found)
+    : recorder.tabIconsSeen(found);

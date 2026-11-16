@@ -9,10 +9,22 @@ import {
 } from "./tabs.css";
 import { WindowComponent } from "./window";
 import { isTabUrlShownInTabsColumn } from "../../util/restrictedTabUrl";
+import { tabSiteIcon } from "../../util/siteIconCache";
+import { siteIconReporter } from "../siteIcon/pageSiteIcons";
 import { PiAppWindowFill } from "react-icons/pi";
 import { useResizeDetector } from "react-resize-detector";
 import { HEIGHT_ONLY_ONCE_PER_FRAME } from "../../util/resizeDetection";
 import { assignInlineVars } from "@vanilla-extract/dynamic";
+
+const reportTabIcons = (tabs: browser.Tabs.Tab[]) =>
+  siteIconReporter
+    .report(
+      "siteIcons.tabsSeen",
+      tabs.flatMap((tab) => tabSiteIcon(tab) ?? []),
+    )
+    .catch((error) =>
+      console.error("Couldn't record the Tabs' Site Icons.", error),
+    );
 
 export const TabsProvider: FC = () => {
   const [tabs, setTabs] = useState<
@@ -48,6 +60,13 @@ export const TabsProvider: FC = () => {
       (type?: TabEvents) =>
       async (...props: unknown[]) => {
         let tabs = await browser.tabs.query({});
+        // The icons shown here also fill in the Bookmarks on these sites:
+        // every Tab's once, then each one whose icon changes.
+        const iconChanged =
+          type === "onUpdated" &&
+          !!(props[1] as browser.Tabs.OnUpdatedChangeInfoType).favIconUrl;
+        if (!type || iconChanged)
+          reportTabIcons(type ? [props[2] as browser.Tabs.Tab] : tabs);
 
         if (type === "onRemoved") {
           tabs = tabs.filter((tab) => tab.id !== props[0]);
