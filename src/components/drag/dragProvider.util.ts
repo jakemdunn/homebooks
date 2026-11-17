@@ -26,7 +26,7 @@ export const getEventData = (
     if (!wrapper) return {};
     const wrapperBounds = wrapper.getBoundingClientRect();
     let offsetX = wrapperBounds.left + 1;
-    let option: HTMLElement | null | undefined = null;
+    let option: HTMLElement | null | undefined;
     do {
       option = document
         .elementFromPoint(offsetX, event.clientY)
