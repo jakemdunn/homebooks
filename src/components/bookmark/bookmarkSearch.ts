@@ -192,7 +192,12 @@ export function useFilterBookmarksByQuery(
   const deferredQuery = useDeferredValue(query.trim());
   return useMemo(() => {
     if (!bookmarks?.length || !deferredQuery) return [bookmarks, []];
-    const results = fuzzysort.go(deferredQuery, targets, { key: "searchText" });
+    // Every match: fuzzysort otherwise keeps only the 10 best, scoring 0.5+.
+    const results = fuzzysort.go(deferredQuery, targets, {
+      key: "searchText",
+      limit: 0,
+      threshold: 0,
+    });
     const matchedIds = new Set(results.map((r) => r.obj.node.id));
     const pruned = pruneBookmarkTreeByMatches(bookmarks, matchedIds);
     const selfScoreById = scoresFromFuzzysortResults(results);

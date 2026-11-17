@@ -24,8 +24,8 @@ importers:
         specifier: ^2.4.9
         version: 2.4.9(react@19.3.1)
       fuzzysort:
-        specifier: ^3.1.0
-        version: 3.1.0
+        specifier: ^4.0.2
+        version: 4.0.2
       react:
         specifier: ^19.3.1
         version: 19.3.1
@@ -1238,8 +1238,8 @@ packages:
     engines: {node: ^8.16.0 || ^10.6.0 || >=11.0.0}
     os: [darwin]
 
-  fuzzysort@3.1.0:
-    resolution: {integrity: sha512-sR9BNCjBg6LNgwvxlBd0sBABvQitkLzoVY9MYYROQVX/FvfJ4Mai9LsGhDgd8qYdds0bY77VzYd5iuB+v5rwQQ==}
+  fuzzysort@4.0.2:
+    resolution: {integrity: sha512-3c7yD6rK1EXIsqpcu1ZVzXJugODWNMzvUij6yTiziaAHrpNS8kzFOI9mJLE8pmG4K9JOaVgzQRgklfOEk8f4Tg==}
 
   fx-runner@1.4.0:
     resolution: {integrity: sha512-rci1g6U0rdTg6bAaBboP7XdRu01dzTAaKXxFf+PUqGuCv6Xu7o8NZdY1D5MvKGIjb6EdS1g3VlXOgksir1uGkg==}
@@ -3497,7 +3497,7 @@ snapshots:
   fsevents@2.3.3:
     optional: true
 
-  fuzzysort@3.1.0: {}
+  fuzzysort@4.0.2: {}
 
   fx-runner@1.4.0:
     dependencies:
