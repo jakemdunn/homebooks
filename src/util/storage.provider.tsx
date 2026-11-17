@@ -145,7 +145,7 @@ export const StorageProvider: FC<PropsWithChildren> = ({ children }) => {
 
   useEffect(() => {
     const getData = async (
-      changes?: Storage.StorageAreaSyncOnChangedChangesType,
+      changes?: Storage.StorageAreaOnChangedChangesType,
       type: StorageType = "local",
     ) => {
       storageDispatch({
