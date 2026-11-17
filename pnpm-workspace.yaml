@@ -17,9 +17,3 @@ allowBuilds:
   dtrace-provider: false
   # Only does work on Node.js versions older than 0.12.
   spawn-sync: false
-
-overrides:
-  # Keeps the esbuild vanilla-extract builds with on the version Yarn
-  # resolved; pnpm otherwise reuses vite's older 0.25. Drop it when
-  # upgrading packages (#54).
-  "@vanilla-extract/integration>esbuild": "0.27.4"
