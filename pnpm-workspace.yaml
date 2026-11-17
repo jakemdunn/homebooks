@@ -1,0 +1,25 @@
+# Don't install any version, direct or transitive, until it's 7 days old, so
+# a compromised release has time to be caught and pulled.
+#
+# A vetted, high-priority exception goes in minimumReleaseAgeExclude as an
+# exact `pkg@x.y.z`, with a comment saying why. Remove it once that version
+# is 7 days old.
+minimumReleaseAge: 10080 # minutes
+
+# Dependencies' install scripts don't run unless allowed here. Allow one
+# only when the build, dev or e2e fails without it, and say why.
+allowBuilds:
+  # esbuild's postinstall checks its platform binary and hard-links it over
+  # the JS launcher in bin/. The launcher works without it, just slower to
+  # start, and nothing here runs the esbuild command.
+  esbuild: false
+  # Optional native DTrace bindings for bunyan, web-ext-run's logger.
+  dtrace-provider: false
+  # Only does work on Node.js versions older than 0.12.
+  spawn-sync: false
+
+overrides:
+  # Keeps the esbuild vanilla-extract builds with on the version Yarn
+  # resolved; pnpm otherwise reuses vite's older 0.25. Drop it when
+  # upgrading packages (#54).
+  "@vanilla-extract/integration>esbuild": "0.27.4"

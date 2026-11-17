@@ -3,16 +3,19 @@
   "private": true,
   "version": "1.0.0",
   "type": "module",
+  "engines": {
+    "pnpm": ">=11"
+  },
   "scripts": {
-    "dev": "concurrently --kill-others --names firefox,chrome --prefix-colors yellow,cyan \"yarn dev:firefox\" \"yarn dev:chrome\"",
+    "dev": "concurrently --kill-others --names firefox,chrome --prefix-colors yellow,cyan \"pnpm dev:firefox\" \"pnpm dev:chrome\"",
     "dev:chrome": "TARGET=chrome OUT_DIR=dist/chrome vite dev",
     "dev:firefox": "TARGET=firefox OUT_DIR=dist/firefox vite dev",
     "watch": "vite build --watch --mode development",
     "build": "tsc && vite build",
-    "lint": "yarn eslint .",
+    "lint": "eslint .",
     "test": "vitest run",
     "build:e2e": "TARGET=chrome OUT_DIR=dist-e2e vite build",
-    "test:e2e": "yarn build:e2e && playwright test",
+    "test:e2e": "pnpm build:e2e && playwright test",
     "typecheck": "tsc --noEmit -p . && tsc --noEmit -p e2e && tsc --noEmit -p build"
   },
   "dependencies": {
@@ -30,7 +33,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.20.0",
-    "@playwright/test": "^1.65.1",
+    "@playwright/test": "^1.65.0",
     "@types/chrome": "^0.3.7",
     "@types/firefox-webext-browser": "^120.0.4",
     "@types/node": "^26.6.6",

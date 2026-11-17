@@ -6,7 +6,7 @@ import type { PluginOptions } from "vite-plugin-web-extension";
 const DEV_TARGETS = ["firefox", "chrome"] as const;
 export type DevTarget = (typeof DEV_TARGETS)[number];
 
-/** Where `yarn dev` keeps each browser's persistent profile. */
+/** Where `pnpm dev` keeps each browser's persistent profile. */
 const PROFILES_FOLDER = ".profiles";
 
 /**
@@ -36,7 +36,7 @@ export const webExtTarget = (target: DevTarget) =>
   target === "firefox" ? "firefox-desktop" : "chromium";
 
 /**
- * How `yarn dev` launches a browser, with a persistent profile so dev
+ * How `pnpm dev` launches a browser, with a persistent profile so dev
  * bookmarks survive a restart. (Each target's build output is set by
  * `OUT_DIR` in its `dev:*` script.) `chromiumBinary` is only called for
  * Chrome.

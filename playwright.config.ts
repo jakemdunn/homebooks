@@ -1,6 +1,6 @@
 import { defineConfig } from "@playwright/test";
 
-// Runs against the built extension (`yarn build:e2e` → dist-e2e), loaded
+// Runs against the built extension (`pnpm build:e2e` → dist-e2e), loaded
 // unpacked into Playwright's Chromium. See docs/adr/0001.
 //
 // Runs headless: with the "chromium" channel (set on the persistent context

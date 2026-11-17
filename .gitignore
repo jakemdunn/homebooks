@@ -6,5 +6,5 @@ dist-e2e
 test-results
 playwright-report
 
-# Persistent dev browser profiles (yarn dev)
+# Persistent dev browser profiles (pnpm dev)
 .profiles
