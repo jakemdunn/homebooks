@@ -52,8 +52,8 @@ importers:
         specifier: ^0.3.7
         version: 0.3.7
       '@types/firefox-webext-browser':
-        specifier: ^120.0.5
-        version: 120.0.5
+        specifier: ^143.0.1
+        version: 143.0.1
       '@types/node':
         specifier: ^26.6.6
         version: 26.6.6
@@ -620,8 +620,8 @@ packages:
   '@types/estree@1.0.10':
     resolution: {integrity: sha512-lTyOMnOcmRBzdCv6/4zUZCrEhV0xrqQiUZBZtVcbmLHBXKLnN8q89v/wKRF/Q0HbwVsqbIG3o5HDoFl9sduM+g==}
 
-  '@types/firefox-webext-browser@120.0.5':
-    resolution: {integrity: sha512-imn8ecga0HQWcOSvxy9i0lD+7vpHgkj1NVLvXS1lNHqHt03Z4QwazeEdoWe+C9JXpmVyKiRanb+z9D/w001tRg==}
+  '@types/firefox-webext-browser@143.0.1':
+    resolution: {integrity: sha512-vDoqYr4fe1dqZXmgkzpxki47AhxfwvXD2juY2pADCKykIh10u8Yq2oe3lKZ88s33pxqj7SYULEq6kFW3c6UJzw==}
 
   '@types/har-format@1.2.16':
     resolution: {integrity: sha512-fluxdy7ryD3MV6h8pTfTYpy/xQzCFC7m89nOH9y94cNqJ1mDIDPut7MnRHI3F6qRmh/cT2fUjG1MLdCNb4hE9A==}
@@ -2778,7 +2778,7 @@ snapshots:
 
   '@types/estree@1.0.10': {}
 
-  '@types/firefox-webext-browser@120.0.5': {}
+  '@types/firefox-webext-browser@143.0.1': {}
 
   '@types/har-format@1.2.16': {}
 
