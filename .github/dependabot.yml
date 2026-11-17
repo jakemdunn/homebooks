@@ -1,0 +1,15 @@
+version: 2
+updates:
+  - package-ecosystem: "npm" # also covers pnpm
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    # Minor and patch updates arrive as one PR; each major gets its own.
+    groups:
+      minor-and-patch:
+        update-types: ["minor", "patch"]
+    # Never propose a version under 7 days old, matching pnpm's
+    # minimumReleaseAge, which would refuse it anyway. Security updates
+    # skip this by design and are reviewed by hand.
+    cooldown:
+      default-days: 7 # every update type: major, minor and patch
