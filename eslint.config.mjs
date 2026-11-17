@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-check
 import eslint from "@eslint/js";
 import tseslint from "typescript-eslint";
@@ -15,10 +14,14 @@ export default tseslint.config(
   {
     files: ["src/**"],
     plugins: {
-      // @ts-ignore
       "react-hooks": hooksPlugin,
     },
-    // @ts-ignore
-    rules: hooksPlugin.configs.recommended.rules,
+    rules: {
+      ...hooksPlugin.configs.recommended.rules,
+      // Off until existing code is fixed or found to be a false positive;
+      // see #57.
+      "react-hooks/refs": "off",
+      "react-hooks/set-state-in-effect": "off",
+    },
   }
 );
