@@ -3,8 +3,12 @@ dist
 
 # Test output
 dist-e2e
+dist-storybook
 test-results
 playwright-report
 
 # Persistent dev browser profiles (pnpm dev)
 .profiles
+
+# Written by Storybook when it crashes
+debug-storybook.log

@@ -16,7 +16,11 @@
     "test": "vitest run",
     "build:e2e": "TARGET=chrome OUT_DIR=dist-e2e vite build",
     "test:e2e": "pnpm build:e2e && playwright test",
-    "typecheck": "tsc --noEmit -p . && tsc --noEmit -p e2e && tsc --noEmit -p build"
+    "typecheck": "tsc --noEmit -p . && tsc --noEmit -p e2e && tsc --noEmit -p build && tsc --noEmit -p .storybook",
+    "storybook": "storybook dev --port 6006",
+    "build:storybook": "storybook build --output-dir dist-storybook",
+    "test:visual": "pnpm build:storybook && playwright test -c visual",
+    "test:visual:update": "pnpm build:storybook && playwright test -c visual --update-snapshots"
   },
   "dependencies": {
     "@floating-ui/react": "^0.27.20",
@@ -33,7 +37,10 @@
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
+    "@fontsource-variable/nunito": "^5.3.0",
+    "@fontsource/rubik-mono-one": "^5.3.0",
     "@playwright/test": "^1.65.0",
+    "@storybook/react-vite": "^10.6.7",
     "@types/chrome": "^0.3.7",
     "@types/firefox-webext-browser": "^143.0.1",
     "@types/node": "^26.6.6",
@@ -47,6 +54,7 @@
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-react-refresh": "^0.5.7",
     "prettier": "3.9.10",
+    "storybook": "^10.6.7",
     "typescript": "^6.0.3",
     "typescript-eslint": "^8.72.2",
     "vite": "^8.3.7",

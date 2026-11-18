@@ -23,7 +23,7 @@ export type SiteIconBrowser = {
 };
 
 /** The hosts of every Bookmark in `node`, Folders included. */
-const hostsIn = (node: Bookmarks.BookmarkTreeNode): string[] => {
+export const hostsIn = (node: Bookmarks.BookmarkTreeNode): string[] => {
   const host = hostOf(node.url);
   return [...(host ? [host] : []), ...(node.children ?? []).flatMap(hostsIn)];
 };
